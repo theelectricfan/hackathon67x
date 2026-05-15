@@ -1,4 +1,4 @@
-"""Bucket 1 — MCAT Mismatch. Gateway LLM only."""
+"""Bucket 1 — MCAT Mismatch. Single LLM call: title + category only."""
 from llm.client import llm
 from langfuse_client import observe
 
@@ -8,35 +8,35 @@ def run_skill_mcat(ctx: dict) -> dict:
     result = llm.chat_json(
         system=(
             "You are an MCAT category mapping expert at IndiaMART, "
-            "India's largest B2B marketplace. Think step by step."
+            "India's largest B2B marketplace."
         ),
         user=f"""BuyLead Title: "{ctx['offer_name']}"
-Mapped MCAT: "{ctx['mapped_mcat_name']}" (ID: {ctx['mapped_mcat_id']})
-MCAT from search URL: {ctx.get('url_mcat_id')} (None means not in URL)
+Mapped Category: "{ctx['mapped_mcat_name']}"
 
-Is this MCAT correct for this BuyLead title?
-Reason step by step considering Indian B2B context.
+Is this category a mismatch for this product?
+Think about what the buyer is actually looking for based on the title.
 
 Return JSON only:
 {{
-  "is_correct": true or false,
+  "is_mismatch": true or false,
   "confidence": 0-100,
-  "reasoning": "step by step explanation",
-  "suggested_mcat": "better MCAT name if wrong, else same",
-  "fix": "one actionable sentence"
+  "reasoning": "one clear explanation",
+  "suggested_mcat": "correct category name if mismatched, else leave empty",
+  "fix": "one actionable sentence for the buyer or ops team"
 }}""",
     )
 
-    is_correct = result.get("is_correct", True)
+    is_mismatch = bool(result.get("is_mismatch", False))
     raw_confidence = int(result.get("confidence", 50))
-    # Convert to mismatch confidence: if correct → low mismatch confidence
-    mismatch_confidence = (100 - raw_confidence) if is_correct else raw_confidence
+    # confidence = how sure LLM is about its is_mismatch verdict
+    # bucket confidence = mismatch likelihood → invert when category is correct
+    confidence = raw_confidence if is_mismatch else (100 - raw_confidence)
 
     return {
         "bucket": "MCAT_MISMATCH",
-        "is_mismatch": not is_correct,
-        "confidence": mismatch_confidence,
+        "is_mismatch": is_mismatch,
+        "confidence": confidence,
         "reasoning": result.get("reasoning", ""),
-        "suggested_mcat": result.get("suggested_mcat", ctx["mapped_mcat_name"]),
-        "fix": result.get("fix", "Verify MCAT mapping manually"),
+        "suggested_mcat": result.get("suggested_mcat", ""),
+        "fix": result.get("fix", "Verify category mapping manually"),
     }

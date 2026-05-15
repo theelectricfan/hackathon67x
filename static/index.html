@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BL RCA Agent — IndiaMART</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2e3248;
+    --text: #e2e4ef;
+    --muted: #7b7f96;
+    --accent: #5b6af0;
+    --red: #f05b5b;
+    --orange: #f0935b;
+    --yellow: #f0d05b;
+    --purple: #b05bf0;
+    --blue: #5b9cf0;
+    --green: #5bf07a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; }
+  header span { font-size: 0.85rem; color: var(--muted); }
+  .badge { background: var(--accent); color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px 32px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .panel-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 16px; }
+
+  .field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  @media (max-width: 600px) { .field-group { grid-template-columns: 1fr; } }
+
+  label { font-size: 0.75rem; color: var(--muted); display: block; margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 8px 10px; font-size: 0.85rem;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .btn {
+    width: 100%; background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 12px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; margin-top: 16px; transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+
+  .result-placeholder {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 300px; color: var(--muted); gap: 12px;
+  }
+  .result-placeholder svg { opacity: 0.3; }
+
+  .bucket-card { border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .bucket-card.primary { border: 2px solid; }
+  .bucket-card.secondary { border: 1px solid; opacity: 0.8; }
+
+  .bucket-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .bucket-label { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+  .confidence-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .conf-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .conf-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .conf-pct { font-size: 0.85rem; font-weight: 600; min-width: 36px; text-align: right; }
+  .fix-box { background: rgba(0,0,0,0.25); border-radius: 6px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.5; }
+  .fix-label { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+
+  .skill-details { margin-top: 16px; }
+  .skill-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-radius: 6px; margin-bottom: 6px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    cursor: pointer; transition: background 0.15s;
+  }
+  .skill-row:hover { background: rgba(255,255,255,0.06); }
+  .skill-name { font-size: 0.8rem; font-weight: 600; }
+  .skill-conf { font-size: 0.75rem; color: var(--muted); }
+  .skill-expand { display: none; padding: 10px 12px; font-size: 0.8rem; color: var(--muted); background: rgba(0,0,0,0.2); border-radius: 0 0 6px 6px; margin-top: -6px; margin-bottom: 6px; }
+
+  .digest-section { padding: 0 32px 32px; }
+  .digest-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .digest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+  .digest-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+  .digest-stat .val { font-size: 2rem; font-weight: 700; }
+  .digest-stat .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .chart-bars { display: flex; gap: 8px; align-items: flex-end; height: 100px; margin-top: 16px; }
+  .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.5s ease; min-height: 4px; }
+  .chart-bar-label { font-size: 0.6rem; color: var(--muted); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+  .chart-bar-pct { font-size: 0.7rem; font-weight: 600; }
+
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--red); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 0.85rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .tag { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-right: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>BL RCA Agent</h1>
+    <span>Root Cause Analysis for Unsold BuyLeads &nbsp;</span>
+    <span class="badge">IndiaMART Hackathon</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- LEFT: Input Form -->
+  <div class="panel">
+    <div class="panel-title">BuyLead Details</div>
+
+    <div class="field-group">
+      <div>
+        <label>BL ID</label>
+        <input id="f_bl_id" placeholder="e.g. BL-100123" />
+      </div>
+      <div>
+        <label>MCAT ID</label>
+        <input id="f_mcat_id" placeholder="e.g. 3291" />
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Title</label>
+      <input id="f_title" placeholder="e.g. Need 50kg industrial grade cement bags" />
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Description</label>
+      <textarea id="f_desc" placeholder="Detailed requirement description..."></textarea>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Quality Grade</label>
+        <select id="f_quality">
+          <option value="">— select —</option>
+          <option value="H">H (High)</option>
+          <option value="M">M (Medium)</option>
+          <option value="L">L (Low)</option>
+        </select>
+      </div>
+      <div>
+        <label>RAG Score</label>
+        <input id="f_rag" type="number" placeholder="0–100" min="0" max="100" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>ISQ Filled</label>
+        <input id="f_isq_filled" type="number" placeholder="e.g. 2" />
+      </div>
+      <div>
+        <label>ISQ Available</label>
+        <input id="f_isq_avail" type="number" placeholder="e.g. 8" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>NI Count</label>
+        <input id="f_ni" type="number" placeholder="e.g. 5" />
+      </div>
+      <div>
+        <label>Sellers Received</label>
+        <input id="f_sellers" type="number" placeholder="e.g. 7" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Time to First Response (hrs)</label>
+        <input id="f_ttfr" type="number" step="0.1" placeholder="e.g. 3.5" />
+      </div>
+      <div>
+        <label>NI Reason Codes</label>
+        <input id="f_ni_reasons" placeholder="e.g. Wrong Cat, Spec Mis" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Posting Platform</label>
+        <select id="f_platform">
+          <option value="">— select —</option>
+          <option value="Desktop">Desktop</option>
+          <option value="Msite">Msite</option>
+          <option value="App">App</option>
+          <option value="WA8181">WA8181</option>
+        </select>
+      </div>
+      <div>
+        <label>Enquiry Type</label>
+        <select id="f_enq_typ">
+          <option value="">— select —</option>
+          <option value="1">1 — Manual</option>
+          <option value="2">2 — Semi-Auto</option>
+          <option value="3">3 — Auto Generated</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Call Verified?</label>
+        <select id="f_call_verified">
+          <option value="">— select —</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div>
+        <label>Login Mode</label>
+        <select id="f_login_mode">
+          <option value="">— select —</option>
+          <option value="1">Logged In</option>
+          <option value="0">Guest</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Photo Mismatch?</label>
+        <select id="f_photo">
+          <option value="">— select —</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div>
+        <label>FCP Flag</label>
+        <select id="f_fcp">
+          <option value="">— select —</option>
+          <option value="1">1</option>
+          <option value="0">0</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Why Do You Need (reason)</label>
+      <input id="f_why" placeholder="e.g. For my manufacturing unit" />
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label>Products Viewed Before Posting</label>
+        <input id="f_products_viewed" type="number" placeholder="e.g. 0" />
+      </div>
+      <div>
+        <label>Posting Date/Time</label>
+        <input id="f_date" type="datetime-local" />
+      </div>
+    </div>
+
+    <button class="btn" id="runBtn" onclick="runRCA()">Run RCA Analysis</button>
+    <button class="btn btn-secondary" onclick="loadDemo()" style="margin-top:8px">Load Demo BL</button>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div class="panel" id="resultPanel">
+    <div class="panel-title">RCA Result</div>
+
+    <div class="result-placeholder" id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+      </svg>
+      <span>Fill in BL details and click Run RCA</span>
+    </div>
+
+    <div id="resultContent" style="display:none">
+      <div id="primaryCard" class="bucket-card primary"></div>
+      <div id="secondaryCard" class="bucket-card secondary" style="display:none"></div>
+
+      <div class="divider"></div>
+
+      <div class="panel-title">All Skill Results</div>
+      <div id="skillList"></div>
+    </div>
+
+    <div id="loadingState" style="display:none">
+      <div class="result-placeholder">
+        <div class="spinner"></div>
+        <span>Running RCA agent...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Digest Section -->
+<div class="digest-section">
+  <div class="digest-panel">
+    <div class="panel-title">Session Digest</div>
+    <div id="digestContent">
+      <div style="color:var(--muted); font-size:0.85rem">Run at least one RCA to see session statistics.</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';  // empty = same origin
+
+const BUCKET_COLORS = {
+  MCAT_MISMATCH:       { bg: 'rgba(91,154,240,0.12)',  border: '#5b9cf0', fill: '#5b9cf0',  label: '🔵 MCAT Mismatch' },
+  THIN_CONTENT:        { bg: 'rgba(240,147,91,0.12)',  border: '#f0935b', fill: '#f0935b',  label: '🟠 Thin Content' },
+  SPEC_CONTRADICTION:  { bg: 'rgba(176,91,240,0.12)', border: '#b05bf0', fill: '#b05bf0',  label: '🟣 Spec Contradiction' },
+  LOW_BUYER_INTENT:    { bg: 'rgba(240,208,91,0.12)', border: '#f0d05b', fill: '#f0d05b',  label: '🟡 Low Buyer Intent' },
+  SELLER_SIDE_FAILURE: { bg: 'rgba(240,91,91,0.12)',  border: '#f05b5b', fill: '#f05b5b',  label: '🔴 Seller Side Failure' },
+  UNKNOWN:             { bg: 'rgba(255,255,255,0.05)', border: '#444',    fill: '#888',     label: '⚪ Unknown' },
+};
+
+let sessionResults = [];
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function buildPayload() {
+  return {
+    eto_ofr_display_id:         document.getElementById('f_bl_id').value || null,
+    eto_ofr_mcat_id:            document.getElementById('f_mcat_id').value || null,
+    eto_ofr_title:              document.getElementById('f_title').value || null,
+    eto_ofr_desc:               document.getElementById('f_desc').value || null,
+    eto_ofr_quality:            document.getElementById('f_quality').value || null,
+    rag_score_total:            parseFloatOrNull('f_rag'),
+    total_filled_isq_approval:  parseFloatOrNull('f_isq_filled'),
+    available_isq_at_approval:  parseFloatOrNull('f_isq_avail'),
+    ni_count:                   parseIntOrNull('f_ni'),
+    sellers_received_count:     parseIntOrNull('f_sellers'),
+    time_to_first_response_hrs: parseFloatOrNull('f_ttfr'),
+    ni_reason_codes:            document.getElementById('f_ni_reasons').value || null,
+    posting_platform:           document.getElementById('f_platform').value || null,
+    eto_enq_typ:                parseIntOrNull('f_enq_typ'),
+    eto_ofr_call_verified:      parseIntOrNull('f_call_verified'),
+    eto_ofr_login_mode:         parseIntOrNull('f_login_mode'),
+    photo_mismatch_flag:        parseIntOrNull('f_photo'),
+    fcp_flag:                   parseIntOrNull('f_fcp'),
+    why_do_you_need_reason:     document.getElementById('f_why').value || null,
+    products_viewed_before_posting: parseIntOrNull('f_products_viewed'),
+    eto_ofr_date:               document.getElementById('f_date').value || null,
+  };
+}
+
+function parseFloatOrNull(id) {
+  const v = document.getElementById(id).value;
+  return v !== '' ? parseFloat(v) : null;
+}
+function parseIntOrNull(id) {
+  const v = document.getElementById(id).value;
+  return v !== '' ? parseInt(v) : null;
+}
+
+async function runRCA() {
+  const payload = buildPayload();
+  if (!payload.eto_ofr_title) { showToast('Please enter a BL Title'); return; }
+
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('resultContent').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('runBtn').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/analyse-bl`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'API error');
+    }
+    const data = await res.json();
+    sessionResults.push(data.rca_result);
+    renderResult(data.rca_result);
+    renderDigest();
+  } catch (e) {
+    showToast('Error: ' + e.message);
+    document.getElementById('placeholder').style.display = 'flex';
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('runBtn').disabled = false;
+  }
+}
+
+function renderResult(r) {
+  const primary = {
+    bucket: r.primary_bucket,
+    confidence: r.primary_confidence,
+    fix: r.primary_fix,
+  };
+  const secondary = r.secondary_bucket ? {
+    bucket: r.secondary_bucket,
+    confidence: r.secondary_confidence,
+    fix: r.secondary_fix,
+  } : null;
+
+  renderBucketCard('primaryCard', primary, true);
+
+  const secCard = document.getElementById('secondaryCard');
+  if (secondary) {
+    renderBucketCard('secondaryCard', secondary, false);
+    secCard.style.display = 'block';
+  } else {
+    secCard.style.display = 'none';
+  }
+
+  renderSkillList(r.all_skill_results || {});
+
+  document.getElementById('resultContent').style.display = 'block';
+}
+
+function renderBucketCard(id, data, isPrimary) {
+  const el = document.getElementById(id);
+  const colors = BUCKET_COLORS[data.bucket] || BUCKET_COLORS.UNKNOWN;
+  el.style.background = colors.bg;
+  el.style.borderColor = colors.border;
+  el.innerHTML = `
+    <div class="bucket-name">${isPrimary ? 'Primary Failure' : 'Secondary Failure'}</div>
+    <div class="bucket-label" style="color:${colors.border}">${colors.label}</div>
+    <div class="confidence-row">
+      <div class="conf-bar-bg">
+        <div class="conf-bar-fill" style="width:${data.confidence}%;background:${colors.fill}"></div>
+      </div>
+      <div class="conf-pct" style="color:${colors.fill}">${data.confidence}%</div>
+    </div>
+    <div class="fix-label">Recommended Fix</div>
+    <div class="fix-box">${data.fix || '—'}</div>
+  `;
+}
+
+function renderSkillList(skillResults) {
+  const container = document.getElementById('skillList');
+  const SKILL_NAMES = {
+    run_skill_mcat: 'B1: MCAT Mismatch',
+    run_skill_content: 'B2: Thin Content',
+    run_skill_spec: 'B3: Spec Contradiction',
+    run_skill_intent: 'B4: Low Buyer Intent',
+    run_skill_seller: 'B5: Seller Side Failure',
+  };
+
+  container.innerHTML = Object.entries(skillResults).map(([key, val]) => {
+    const name = SKILL_NAMES[key] || key;
+    const conf = val.confidence || 0;
+    const colors = BUCKET_COLORS[val.bucket] || BUCKET_COLORS.UNKNOWN;
+    const detail = JSON.stringify(val, null, 2);
+    const rowId = 'skill_' + key;
+    return `
+      <div class="skill-row" onclick="toggleSkill('${rowId}')">
+        <div class="skill-name" style="color:${colors.border}">${name}</div>
+        <div class="skill-conf">${conf}% confidence ▾</div>
+      </div>
+      <div class="skill-expand" id="${rowId}"><pre style="font-size:0.75rem;overflow:auto">${detail}</pre></div>
+    `;
+  }).join('');
+}
+
+function toggleSkill(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function renderDigest() {
+  const buckets = {};
+  sessionResults.forEach(r => {
+    const b = r.primary_bucket || 'UNKNOWN';
+    buckets[b] = (buckets[b] || 0) + 1;
+  });
+
+  const total = sessionResults.length;
+  const entries = Object.entries(buckets).sort((a,b) => b[1]-a[1]);
+  const maxVal = Math.max(...entries.map(e => e[1]), 1);
+
+  const bars = entries.map(([b, c]) => {
+    const colors = BUCKET_COLORS[b] || BUCKET_COLORS.UNKNOWN;
+    const h = Math.max(8, Math.round(c / maxVal * 100));
+    const short = b.replace('_', ' ').split(' ').map(w => w[0]).join('').slice(0,4);
+    return `
+      <div class="chart-bar-wrap">
+        <div class="chart-bar-pct" style="color:${colors.fill}">${Math.round(c/total*100)}%</div>
+        <div class="chart-bar" style="height:${h}px;background:${colors.fill}"></div>
+        <div class="chart-bar-label" style="color:${colors.fill}">${short}</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('digestContent').innerHTML = `
+    <div class="digest-grid">
+      <div class="digest-stat"><div class="val">${total}</div><div class="lbl">BLs Analysed</div></div>
+      <div class="digest-stat"><div class="val">${entries[0]?.[0]?.split('_')?.[0] || '—'}</div><div class="lbl">Top Bucket</div></div>
+      <div class="digest-stat"><div class="val">${Math.round(total * 0.15)}</div><div class="lbl">Est. Recoverable</div></div>
+      <div class="digest-stat"><div class="val">${entries.length}</div><div class="lbl">Buckets Active</div></div>
+    </div>
+    <div class="chart-bars">${bars}</div>
+    <div style="margin-top:12px;font-size:0.75rem;color:var(--muted)">
+      ${entries.map(([b,c]) => {
+        const colors = BUCKET_COLORS[b] || BUCKET_COLORS.UNKNOWN;
+        return `<span class="tag" style="background:${colors.bg};color:${colors.fill}">${colors.label} ${c}</span>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function loadDemo() {
+  document.getElementById('f_bl_id').value = 'BL-DEMO-001';
+  document.getElementById('f_mcat_id').value = '3291';
+  document.getElementById('f_title').value = 'Need cement';
+  document.getElementById('f_desc').value = 'need it';
+  document.getElementById('f_quality').value = 'L';
+  document.getElementById('f_rag').value = '2';
+  document.getElementById('f_isq_filled').value = '1';
+  document.getElementById('f_isq_avail').value = '8';
+  document.getElementById('f_ni').value = '6';
+  document.getElementById('f_sellers').value = '7';
+  document.getElementById('f_ttfr').value = '36';
+  document.getElementById('f_ni_reasons').value = 'Wrong Cat, Spec Mis';
+  document.getElementById('f_platform').value = 'Msite';
+  document.getElementById('f_enq_typ').value = '3';
+  document.getElementById('f_call_verified').value = '0';
+  document.getElementById('f_login_mode').value = '0';
+  document.getElementById('f_photo').value = '1';
+  document.getElementById('f_fcp').value = '0';
+  document.getElementById('f_products_viewed').value = '0';
+  document.getElementById('f_why').value = '';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BL RCA Agent — IndiaMART</title>
+<style>
+:root {
+  --bg:#0b0d14; --surface:#13151f; --surface2:#1a1d2e;
+  --border:#252840; --text:#dde1f5; --muted:#6b7099;
+  --accent:#5b6af0; --accent2:#7b8bff;
+  --red:#f05b5b; --orange:#f09c5b; --yellow:#f0d45b;
+  --purple:#b05bf0; --blue:#5b9cf0; --green:#5bf09c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+header .logo{display:flex;align-items:center;gap:12px;}
+header h1{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;}
+header .sub{font-size:.78rem;color:var(--muted);}
+.pill{background:var(--accent);color:#fff;font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.05em;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#3a3f5c;}
+.status-dot.ok{background:var(--green);}
+
+/* UPLOAD ZONE */
+.upload-zone{padding:20px 28px;background:var(--surface);border-bottom:1px solid var(--border);}
+.upload-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;}
+.upload-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:700px){.upload-grid{grid-template-columns:1fr 1fr;}}
+.file-slot{background:var(--bg);border:1.5px dashed var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:border-color .2s,background .2s;position:relative;}
+.file-slot:hover,.file-slot.dragover{border-color:var(--accent);background:rgba(91,106,240,.06);}
+.file-slot.loaded{border-style:solid;border-color:var(--green);}
+.file-slot input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.slot-label{font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;}
+.slot-name{font-size:.8rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slot-icon{font-size:1.2rem;margin-bottom:4px;}
+
+.run-row{display:flex;align-items:center;gap:12px;margin-top:14px;}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn:hover{opacity:.85;}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-sm{padding:6px 14px;font-size:.8rem;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+.run-hint{font-size:.75rem;color:var(--muted);}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:calc(100vh - 180px);}
+@media(max-width:900px){.main{grid-template-columns:1fr;}}
+
+/* LEFT — BL Summary */
+.panel-left{background:var(--surface);border-right:1px solid var(--border);padding:20px;}
+.section-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;margin-top:18px;}
+.section-title:first-child{margin-top:0;}
+.kv-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);gap:8px;}
+.kv-key{font-size:.75rem;color:var(--muted);flex-shrink:0;}
+.kv-val{font-size:.78rem;text-align:right;word-break:break-word;}
+.badge{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:10px;}
+.badge.yes{background:rgba(91,240,156,.12);color:var(--green);}
+.badge.no{background:rgba(240,91,91,.12);color:var(--red);}
+.badge.warn{background:rgba(240,212,91,.12);color:var(--yellow);}
+
+.specs-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:4px;}
+.specs-table td{padding:4px 6px;border:1px solid var(--border);}
+.specs-table td:first-child{color:var(--muted);width:45%;}
+
+.seller-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:.75rem;}
+.seller-name{font-weight:700;margin-bottom:4px;}
+.seller-meta{color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;}
+
+.placeholder-left{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--muted);text-align:center;gap:8px;font-size:.85rem;}
+
+/* RIGHT — RCA Result */
+.panel-right{padding:20px;}
+.placeholder-right{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;color:var(--muted);text-align:center;gap:10px;}
+.placeholder-right svg{opacity:.2;}
+
+/* Spinner */
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Primary bucket card */
+.primary-card{border-radius:12px;padding:20px;margin-bottom:16px;border:2px solid;}
+.primary-card .bucket-name{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;}
+.primary-card .bucket-label{font-size:1.5rem;font-weight:800;margin-bottom:14px;}
+.conf-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.conf-bar-bg{flex:1;height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;}
+.conf-bar-fill{height:100%;border-radius:5px;transition:width .7s ease;}
+.conf-pct{font-size:1rem;font-weight:700;min-width:44px;text-align:right;}
+.fix-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;}
+.fix-box{background:rgba(0,0,0,.3);border-radius:8px;padding:10px 14px;font-size:.85rem;line-height:1.6;}
+
+/* Secondary card */
+.secondary-card{border-radius:8px;padding:14px;margin-bottom:16px;border:1px solid;opacity:.85;}
+.secondary-card .bucket-label{font-size:1rem;font-weight:700;margin-bottom:10px;}
+
+/* Score bars */
+.score-bars{margin-bottom:16px;}
+.score-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.score-bar-name{font-size:.72rem;width:160px;flex-shrink:0;}
+.score-bar-bg{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.score-bar-pct{font-size:.72rem;min-width:32px;text-align:right;}
+
+/* Skill detail accordion */
+.skill-accordion{margin-top:16px;}
+.skill-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;cursor:pointer;transition:background .15s;}
+.skill-row:hover{background:rgba(255,255,255,.05);}
+.skill-row-name{font-size:.8rem;font-weight:600;}
+.skill-row-conf{font-size:.72rem;color:var(--muted);}
+.skill-expand{display:none;background:rgba(0,0,0,.25);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:10px 12px;margin-bottom:4px;margin-top:-4px;}
+.skill-expand pre{font-size:.72rem;overflow:auto;max-height:250px;color:var(--muted);}
+
+/* Run info bar */
+.run-info{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:.75rem;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;}
+.run-info span{display:flex;gap:4px;align-items:center;}
+.run-info strong{color:var(--text);}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#1e2030;border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:8px;font-size:.82rem;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:999;max-width:320px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <h1>BL RCA Agent</h1>
+      <div class="sub">Root Cause Analysis for Unsold BuyLeads</div>
+    </div>
+    <span class="pill">IndiaMART MVP</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted);">
+    <div class="status-dot" id="apiDot"></div>
+    <span id="apiStatus">Checking API...</span>
+  </div>
+</header>
+
+<!-- Upload Zone -->
+<div class="upload-zone">
+  <div class="upload-title">Step 1 — Upload 4 CSV files</div>
+  <div class="upload-grid">
+    <div class="file-slot" id="slot_bl">
+      <input type="file" accept=".csv" onchange="onFileSelect(this,'bl')" id="inp_bl"/>
+      <div class="slot-icon">📋</div>
+      <div class="slot-label">bl_data.csv</div>
+      <div class="slot-name" id="name_bl">Click or drag to upload</div>
+    </div>
+    <div class="file-slot" id="slot_buyer">
+      <input type="file" accept=".csv" onchange="onFileSelect(this,'buyer')" id="inp_buyer"/>
+      <div class="slot-icon">👤</div>
+      <div class="slot-label">buyer_data.csv</div>
+      <div class="slot-name" id="name_buyer">Click or drag to upload</div>
+    </div>
+    <div class="file-slot" id="slot_seller">
+      <input type="file" accept=".csv" onchange="onFileSelect(this,'seller')" id="inp_seller"/>
+      <div class="slot-icon">🏭</div>
+      <div class="slot-label">seller_data.csv</div>
+      <div class="slot-name" id="name_seller">Click or drag to upload</div>
+    </div>
+    <div class="file-slot" id="slot_specs">
+      <input type="file" accept=".csv" onchange="onFileSelect(this,'specs')" id="inp_specs"/>
+      <div class="slot-icon">📊</div>
+      <div class="slot-label">buyer_specs_data.csv</div>
+      <div class="slot-name" id="name_specs">Click or drag to upload</div>
+    </div>
+  </div>
+  <div class="run-row">
+    <button class="btn" id="runBtn" onclick="runRCA()" disabled>Run RCA Analysis</button>
+    <button class="btn btn-sm btn-outline" onclick="resetAll()">Reset</button>
+    <div class="run-hint" id="runHint">Upload all 4 CSVs to enable</div>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main">
+
+  <!-- LEFT: BL Summary -->
+  <div class="panel-left" id="panelLeft">
+    <div class="placeholder-left" id="leftPlaceholder">
+      <div style="font-size:2rem">📂</div>
+      <div>BL summary will appear here after upload and run</div>
+    </div>
+    <div id="leftContent" style="display:none"></div>
+  </div>
+
+  <!-- RIGHT: RCA Result -->
+  <div class="panel-right" id="panelRight">
+    <div class="placeholder-right" id="rightPlaceholder">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+      </svg>
+      <div>Run RCA to see diagnosis</div>
+    </div>
+    <div id="loadingState" style="display:none">
+      <div class="placeholder-right">
+        <div class="spinner"></div>
+        <div>Running all 5 skill agents...</div>
+        <div style="font-size:.75rem;color:var(--muted)" id="loadingStep">Initialising...</div>
+      </div>
+    </div>
+    <div id="rightContent" style="display:none"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:8000';
+
+const BUCKET_COLORS = {
+  MCAT_MISMATCH:       {bg:'rgba(91,154,240,.1)', border:'#5b9cf0', fill:'#5b9cf0', label:'MCAT Mismatch',       emoji:'🔵'},
+  THIN_CONTENT:        {bg:'rgba(240,156,91,.1)', border:'#f09c5b', fill:'#f09c5b', label:'Thin Content',        emoji:'🟠'},
+  SPEC_CONTRADICTION:  {bg:'rgba(176,91,240,.1)', border:'#b05bf0', fill:'#b05bf0', label:'Spec Contradiction',  emoji:'🟣'},
+  LOW_BUYER_INTENT:    {bg:'rgba(240,212,91,.1)', border:'#f0d45b', fill:'#f0d45b', label:'Low Buyer Intent',    emoji:'🟡'},
+  SELLER_SIDE_FAILURE: {bg:'rgba(240,91,91,.1)',  border:'#f05b5b', fill:'#f05b5b', label:'Seller Side Failure', emoji:'🔴'},
+  UNKNOWN:             {bg:'rgba(255,255,255,.04)',border:'#444',    fill:'#888',    label:'Unknown',             emoji:'⚪'},
+};
+
+const SKILL_MAP = {
+  mcat:    'MCAT_MISMATCH',
+  content: 'THIN_CONTENT',
+  spec:    'SPEC_CONTRADICTION',
+  intent:  'LOW_BUYER_INTENT',
+  seller:  'SELLER_SIDE_FAILURE',
+};
+
+let files = {bl:null, buyer:null, seller:null, specs:null};
+let lastCtxSummary = null;
+
+// ── API health check ──────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API}/health`, {signal: AbortSignal.timeout(3000)});
+    if (r.ok) {
+      document.getElementById('apiDot').className = 'status-dot ok';
+      document.getElementById('apiStatus').textContent = 'API connected';
+    }
+  } catch {
+    document.getElementById('apiStatus').textContent = 'API offline — start uvicorn';
+  }
+}
+checkHealth();
+
+// ── File handling ─────────────────────────────────────────────────
+function onFileSelect(input, key) {
+  const file = input.files[0];
+  if (!file) return;
+  files[key] = file;
+  document.getElementById('name_' + key).textContent = file.name;
+  document.getElementById('slot_' + key).classList.add('loaded');
+  updateRunButton();
+}
+
+function updateRunButton() {
+  const allLoaded = files.bl && files.buyer && files.seller && files.specs;
+  document.getElementById('runBtn').disabled = !allLoaded;
+  document.getElementById('runHint').textContent = allLoaded
+    ? 'All files ready — click Run RCA'
+    : `${4 - Object.values(files).filter(Boolean).length} file(s) remaining`;
+}
+
+function resetAll() {
+  files = {bl:null, buyer:null, seller:null, specs:null};
+  ['bl','buyer','seller','specs'].forEach(k => {
+    document.getElementById('name_' + k).textContent = 'Click or drag to upload';
+    document.getElementById('slot_' + k).classList.remove('loaded');
+    document.getElementById('inp_' + k).value = '';
+  });
+  updateRunButton();
+  document.getElementById('rightPlaceholder').style.display = 'flex';
+  document.getElementById('rightContent').style.display = 'none';
+  document.getElementById('leftPlaceholder').style.display = 'flex';
+  document.getElementById('leftContent').style.display = 'none';
+}
+
+// ── Run RCA ───────────────────────────────────────────────────────
+async function runRCA() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  document.getElementById('rightPlaceholder').style.display = 'none';
+  document.getElementById('rightContent').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+
+  const steps = [
+    'Building BL context from CSVs...',
+    'Running B1: MCAT check...',
+    'Running B2: Content analysis...',
+    'Running B3: Spec contradiction (Parallel AI)...',
+    'Running B4: Buyer intent...',
+    'Running B5: Seller pool analysis...',
+    'Synthesising results...',
+  ];
+  let si = 0;
+  const stepEl = document.getElementById('loadingStep');
+  const stepTimer = setInterval(() => {
+    stepEl.textContent = steps[si % steps.length];
+    si++;
+  }, 1800);
+
+  try {
+    const fd = new FormData();
+    fd.append('bl_csv', files.bl);
+    fd.append('buyer_csv', files.buyer);
+    fd.append('seller_csv', files.seller);
+    fd.append('specs_csv', files.specs);
+
+    const res = await fetch(`${API}/rca/single`, {method:'POST', body:fd});
+    clearInterval(stepTimer);
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Server error');
+    }
+
+    const data = await res.json();
+    renderLeft(data);
+    renderRight(data);
+    showToast('RCA complete ✓', false);
+
+  } catch(e) {
+    clearInterval(stepTimer);
+    showToast('Error: ' + e.message, true);
+    document.getElementById('rightPlaceholder').style.display = 'flex';
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    btn.disabled = false;
+  }
+}
+
+// ── Render Left Panel ─────────────────────────────────────────────
+function renderLeft(data) {
+  const sr = data.skill_results || {};
+  const mcat = sr.mcat || {};
+  const intent = sr.intent || {};
+  const seller = sr.seller || {};
+
+  // We rebuild context summary from what the API returns
+  let html = '';
+
+  // BL Info
+  html += `<div class="section-title">BuyLead</div>`;
+  html += kv('Offer ID', data.offer_id);
+  html += kv('Title', `<strong>${data.offer_name}</strong>`);
+  html += kv('MCAT', `${data.mapped_mcat}`);
+  html += kv('Run ID', `<small>${data.run_id || '—'}</small>`);
+
+  // MCAT skill mini
+  html += `<div class="section-title">B1 — MCAT</div>`;
+  const mismatch = mcat.is_mismatch;
+  html += kv('Mismatch?', badge(mismatch ? 'YES' : 'No', mismatch ? 'warn' : 'yes'));
+  if (mcat.suggested_mcat) html += kv('Suggested', mcat.suggested_mcat);
+
+  // Intent signals
+  html += `<div class="section-title">B4 — Buyer Intent</div>`;
+  html += kv('Intent Score', `${intent.intent_score ?? '—'}/100`);
+  html += kv('Genuine?', badge(intent.is_genuine ? 'Yes' : 'NO', intent.is_genuine ? 'yes' : 'no'));
+  if (intent.reasoning) html += `<div style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5">${intent.reasoning.slice(0,200)}…</div>`;
+
+  // Seller pool
+  html += `<div class="section-title">B5 — Seller Pool (${seller.pool_size ?? '?'} sellers)</div>`;
+  html += kv('Likely Responded?', badge(seller.likely_responded ? 'Yes' : 'NO', seller.likely_responded ? 'yes' : 'no'));
+  html += kv('Pool Quality', `${seller.seller_quality_score ?? '—'}/100`);
+  if (seller.primary_reason) html += `<div style="font-size:.72rem;color:var(--muted);margin-top:6px;line-height:1.5">${seller.primary_reason.slice(0,150)}…</div>`;
+
+  document.getElementById('leftContent').innerHTML = html;
+  document.getElementById('leftPlaceholder').style.display = 'none';
+  document.getElementById('leftContent').style.display = 'block';
+}
+
+function kv(k, v) {
+  return `<div class="kv-row"><span class="kv-key">${k}</span><span class="kv-val">${v}</span></div>`;
+}
+function badge(text, type) {
+  return `<span class="badge ${type}">${text}</span>`;
+}
+
+// ── Render Right Panel ────────────────────────────────────────────
+function renderRight(data) {
+  const primary = data.primary_bucket;
+  const pc = data.primary_confidence;
+  const secondary = data.secondary_bucket;
+  const sc = data.secondary_confidence;
+  const scores = data.bucket_scores || {};
+  const skills = data.skill_results || {};
+
+  const pColors = BUCKET_COLORS[primary] || BUCKET_COLORS.UNKNOWN;
+  const sColors = BUCKET_COLORS[secondary || 'UNKNOWN'] || BUCKET_COLORS.UNKNOWN;
+
+  let html = '';
+
+  // Run info bar
+  html += `<div class="run-info">
+    <span>Run <strong>${data.run_id || '—'}</strong></span>
+    <span>Offer <strong>${data.offer_id}</strong></span>
+    <span>Output saved to <strong>output/results/</strong></span>
+  </div>`;
+
+  // Primary card
+  html += `<div class="primary-card" style="background:${pColors.bg};border-color:${pColors.border}">
+    <div class="bucket-name" style="color:${pColors.fill}">Primary Failure Bucket</div>
+    <div class="bucket-label" style="color:${pColors.fill}">${pColors.emoji} ${pColors.label}</div>
+    <div class="conf-row">
+      <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${pc}%;background:${pColors.fill}"></div></div>
+      <div class="conf-pct" style="color:${pColors.fill}">${pc}%</div>
+    </div>
+    <div class="fix-label">Recommended Fix</div>
+    <div class="fix-box">${data.primary_fix || '—'}</div>
+  </div>`;
+
+  // Secondary card
+  if (secondary) {
+    html += `<div class="secondary-card" style="background:${sColors.bg};border-color:${sColors.border}">
+      <div class="bucket-label" style="color:${sColors.fill}">${sColors.emoji} ${sColors.label}</div>
+      <div class="conf-row">
+        <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${sc}%;background:${sColors.fill}"></div></div>
+        <div class="conf-pct" style="color:${sColors.fill}">${sc}%</div>
+      </div>
+      <div class="fix-label">Fix</div>
+      <div class="fix-box" style="font-size:.8rem">${data.secondary_fix || '—'}</div>
+    </div>`;
+  }
+
+  // All bucket scores
+  html += `<div class="section-title" style="margin-top:16px">All Bucket Scores</div>
+  <div class="score-bars">`;
+  const sortedScores = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  for (const [b, score] of sortedScores) {
+    const c = BUCKET_COLORS[b] || BUCKET_COLORS.UNKNOWN;
+    html += `<div class="score-bar-row">
+      <div class="score-bar-name" style="color:${c.fill}">${c.emoji} ${c.label}</div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:${score}%;background:${c.fill}"></div></div>
+      <div class="score-bar-pct" style="color:${c.fill}">${score}%</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Skill detail accordion
+  html += `<div class="section-title">Skill Details (click to expand)</div><div class="skill-accordion">`;
+  for (const [key, bucket] of Object.entries(SKILL_MAP)) {
+    const r = skills[key] || {};
+    const c = BUCKET_COLORS[bucket] || BUCKET_COLORS.UNKNOWN;
+    const conf = r.confidence ?? 0;
+    html += `<div class="skill-row" onclick="toggleSkill('se_${key}')">
+      <div class="skill-row-name" style="color:${c.fill}">${c.emoji} ${c.label}</div>
+      <div class="skill-row-conf">${conf}% confidence ▾</div>
+    </div>
+    <div class="skill-expand" id="se_${key}"><pre>${JSON.stringify(r, null, 2)}</pre></div>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('rightContent').innerHTML = html;
+  document.getElementById('rightPlaceholder').style.display = 'none';
+  document.getElementById('rightContent').style.display = 'block';
+}
+
+function toggleSkill(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+
+// Drag and drop
+document.querySelectorAll('.file-slot').forEach(slot => {
+  slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
+  slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+  slot.addEventListener('drop', e => {
+    e.preventDefault();
+    slot.classList.remove('dragover');
+    const key = slot.id.replace('slot_','');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      files[key] = file;
+      document.getElementById('name_'+key).textContent = file.name;
+      slot.classList.add('loaded');
+      updateRunButton();
+    }
+  });
+});
+</script>
+</body>
+</html>

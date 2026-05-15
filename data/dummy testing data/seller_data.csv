@@ -1,0 +1,5 @@
+glusr_usr_id,glusr_usr_companyname,custtype_name,custtype_is_paid,glusr_usr_custtype_weight,fcp_flag,glusr_usr_membersince,glusr_eto_cust_credits_av,glusr_usr_lastlogin,fk_gl_city_id,fk_gl_state_id,fk_gl_country_iso
+57075069.0,Shree Krishna Enterprise,CATALOG,-1.0,699.0,0.0,06/02/18 23:50,,24/07/25 17:18,70772.0,6501.0,IN
+38421796.0,Y H Trading Company,TSCATALOG,-1.0,199.0,0.0,07/02/17 17:54,,27/12/24 13:46,70772.0,6501.0,IN
+244790238.0,B.N.Chemicals,CATALOG,-1.0,699.0,0.0,22/04/25 16:16,,21/05/25 14:44,70772.0,6501.0,IN
+202181807.0,K B Rubber Enterprise,CATALOG,-1.0,699.0,0.0,02/11/23 10:42,,22/11/23 10:18,70778.0,6501.0,IN

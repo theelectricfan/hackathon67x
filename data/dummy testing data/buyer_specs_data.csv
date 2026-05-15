@@ -1,0 +1,23 @@
+mcat_id,mcat_name,spec_id,spec_name,spec_type,option_id,option_value,raw_spec_priority,raw_option_priority,spec_priority,option_priority,is_quantity_related_spec,option_schema_status
+37158,Scrap Rubber,237860,Quantity,1,1705690,None,1,1,1,1,1,OPTION_DEFINED
+37158,Scrap Rubber,2621614,Quantity Unit,3,16645070,Kg,2,1,2,1,1,OPTION_DEFINED
+37158,Scrap Rubber,2621614,Quantity Unit,3,16645071,Ton,2,4,2,2,1,OPTION_DEFINED
+37158,Scrap Rubber,2905378,Material,3,,,3,,3,,0,NO_OPTION_DEFINED_OR_FREE_TEXT_SPEC
+37158,Scrap Rubber,2905376,Material,2,22509211,Butyl,11,1,4,1,0,OPTION_DEFINED
+37158,Scrap Rubber,2905376,Material,2,22509212,EVA,11,2,4,2,0,OPTION_DEFINED
+37158,Scrap Rubber,2905376,Material,2,13147060,Silicone,11,3,4,3,0,OPTION_DEFINED
+37158,Scrap Rubber,2905376,Material,2,13147057,Natural Rubber,11,4,4,4,0,OPTION_DEFINED
+37158,Scrap Rubber,2905376,Material,2,22509213,NBR,11,5,4,5,0,OPTION_DEFINED
+37158,Scrap Rubber,2905376,Material,2,22509214,PVC,11,6,4,6,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509209,Tube Scrap,12,1,5,1,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509210,Tyre,12,2,5,2,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509205,Truck Tubes,12,3,5,3,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509206,Surgical Glove,12,4,5,4,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509207,Fan Belt,12,5,5,5,0,OPTION_DEFINED
+37158,Scrap Rubber,4765460,Source Product,2,22509208,Insulation,12,6,5,6,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509201,Black,13,1,6,1,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509202,White,13,2,6,2,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509203,Red,13,3,6,3,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509204,Black and Grey,13,4,6,4,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509199,Blue,13,5,6,5,0,OPTION_DEFINED
+37158,Scrap Rubber,4765459,Color,2,22509200,Mixed Colors,13,6,6,6,0,OPTION_DEFINED

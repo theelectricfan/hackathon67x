@@ -1,100 +1,118 @@
 ---
 name: rca
-description: BL RCA Agent for IndiaMART — diagnose why a BuyLead failed to sell across 7 failure buckets. Use when working on the RCA agent codebase, debugging bucket logic, improving skills, or analysing a BuyLead.
-allowed-tools: Read Bash Glob Grep Edit Write
+description: Use this skill when working on the IndiaMART BL RCA Agent — diagnosing why a BuyLead failed to sell, improving any of the 7 failure bucket skills (B1–B7), debugging confidence scores, updating bucket logic, fixing the seller pool analysis, working on the UI, or running the demo. Returns a structured RCA report with confidence scores, overlap detection, and per-bucket fixes. Also renders the full visual dashboard as an HTML artifact directly in the chat.
 ---
 
-# BL RCA Agent — Project Skill
+When invoked, do the following:
 
-You are working on the **IndiaMART BL RCA Agent** — a system that diagnoses why a BuyLead (buyer enquiry) failed to sell on IndiaMART's B2B marketplace.
+1. Read `CLAUDE.md` in the project root for full project context before making any changes.
+2. Identify what the user wants — improve a bucket, debug a score, add a feature, or run the demo.
+3. Read the relevant skill file(s) from `skills/` before editing.
+4. Make changes if needed.
+5. **Run the demo and render the dashboard as an HTML artifact** (see Dashboard Output below).
+
+## Inputs
+- Optional: bucket name (B1–B7) or offer_id to focus on
+- If no argument given, load full project context and await instruction
+
+## Outputs
+- Code changes to skill files, orchestrator, context builder, or UI
+- The full RCA dashboard rendered as an HTML artifact in the chat
 
 ## Project Location
 `C:\Users\Imart\Desktop\67xHackathon\hackathon67x`
 
-## What the System Does
-- Ingests up to 6 CSV data sources for a BuyLead
-- Builds a flat context dict with all signals
-- Runs **7 specialised skill agents** — each scores one failure bucket (0–100 confidence)
-- Detects overlap — multiple active issues simultaneously
-- Serves a web UI at `http://localhost:8000`
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Full project guide — read first |
+| `data/SCHEMA.md` | All 6 CSV schemas |
+| `core/orchestrator.py` | Runs all 7 skills, overlap detection |
+| `core/bl_context_builder.py` | Reads 6 CSVs → flat context dict |
+| `api/main.py` | FastAPI — /report/demo, /rca/single, /health |
+| `skills/skill_mcat.py` | B1 MCAT Mismatch |
+| `skills/skill_content.py` | B2 Thin Content |
+| `skills/skill_spec.py` | B3 Spec Contradiction |
+| `skills/skill_intent.py` | B4 Low Buyer Intent |
+| `skills/skill_seller.py` | B5 Seller Side Failure |
+| `skills/skill_spec_quality.py` | B6 Spec Value Quality |
+| `skills/skill_quantity.py` | B7 Quantity Mismatch |
+| `ui/index.html` | Single-page dark UI (server-hosted) |
+| `ui/artifact_template.html` | Standalone template — Claude injects data here for artifact output |
+| `llm/client.py` | Singleton `llm` — chat_json(), parallel() |
+| `config/settings.py` | All env vars and model names |
 
 ## 7 Failure Buckets
 
-| ID | Bucket | File | LLM |
-|----|--------|------|-----|
-| B1 | `MCAT_MISMATCH` | `skills/skill_mcat.py` | Gateway Flash |
-| B2 | `THIN_CONTENT` | `skills/skill_content.py` | Parallel AI + Gateway |
-| B3 | `SPEC_CONTRADICTION` | `skills/skill_spec.py` | Parallel AI only |
-| B4 | `LOW_BUYER_INTENT` | `skills/skill_intent.py` | Gateway Flash Lite |
-| B5 | `SELLER_SIDE_FAILURE` | `skills/skill_seller.py` | Gateway Flash Lite |
-| B6 | `SPEC_VALUE_QUALITY` | `skills/skill_spec_quality.py` | Parallel AI only |
-| B7 | `QUANTITY_MISMATCH` | `skills/skill_quantity.py` | Parallel AI only |
+| ID | Bucket | LLM | Fast Path |
+|----|--------|-----|-----------|
+| B1 | MCAT_MISMATCH | Gateway Flash | — |
+| B2 | THIN_CONTENT | Parallel AI + Gateway | — |
+| B3 | SPEC_CONTRADICTION | Parallel AI only | — |
+| B4 | LOW_BUYER_INTENT | Gateway Flash Lite | — |
+| B5 | SELLER_SIDE_FAILURE | Gateway Flash Lite | pool_size=0 → conf=90 |
+| B6 | SPEC_VALUE_QUALITY | Parallel AI only | out_of_catalog=0 → conf=0 |
+| B7 | QUANTITY_MISMATCH | Parallel AI only | no qty+no AOV → conf=0 |
 
-**Active threshold: 40%** — buckets above 40 are flagged as active issues.
+Active threshold: **40%** — buckets above 40 flagged as active issues.
 
-## Key Files
+## Critical Design Rules
+- B1: confidence = raw if is_mismatch=True, else 100-raw (inversion when category is correct)
+- B3/B6/B7: Parallel AI returns `fix` directly — no Gateway summariser (cost saving)
+- B4/B5: use `model=settings.GEMINI_FLASH_LITE_MODEL` for cost saving
+- All count metrics output as `{count, total, pct, label}` format
+- city_mismatch in ctx = buyer GLB vs IP city, NOT buyer vs seller city
+- selection_rejection_type=A = selected for distribution, NOT responded
 
-```
-api/main.py                  ← FastAPI (port 8000) — /report/demo, /rca/single, /health
-core/bl_context_builder.py   ← Reads 6 CSVs → flat context dict
-core/orchestrator.py         ← Runs all 7 skills, overlap detection, saves output
-skills/skill_mcat.py         ← B1
-skills/skill_content.py      ← B2
-skills/skill_spec.py         ← B3
-skills/skill_intent.py       ← B4
-skills/skill_seller.py       ← B5
-skills/skill_spec_quality.py ← B6
-skills/skill_quantity.py     ← B7
-llm/client.py                ← Singleton `llm` — chat_json(), parallel()
-config/settings.py           ← All env vars and model names
-ui/index.html                ← Single-page dark UI
-data/dummy testing data/     ← Test CSVs (offer_id: 144220567946, Natural Rubber Scrap)
-CLAUDE.md                    ← Full project guide — read this for complete context
-data/SCHEMA.md               ← All 6 CSV schemas with field meanings
-```
+## Demo Data
+Dummy test data in `data/dummy testing data/` — offer_id: 144220567946 (Natural Rubber Scrap)
+Expected result: 4 active issues — B5(100%), B2(85%), B4(80%), B1(~2% after fix)
 
-## Data Sources
+## Dashboard Output — HTML Artifact
 
-| # | File | Key Info |
-|---|------|----------|
-| DS1 | `bl_data.csv` | PIVOTED — group by offer_id. spec_id=-1 = metadata (AOV, req_type) |
-| DS2 | `buyer_data.csv` | GST/mobile/email verified, leads_cnt, sell_mcats, prime_mcats |
-| DS3 | `seller_data.csv` | Basic seller pool, fcp_flag |
-| DS4 | `buyer_specs_data.csv` | MCAT catalog — options, priority (1=required), is_quantity_related |
-| DS5 | `0_1_2_specs_mcat_bl_sold_Data.csv` | Thin BL benchmark — BLs with 0/1/2 specs that sold |
-| DS6 | `Seller_Detailed_Data.csv` | Rich seller data — alert rank, credits, last login, distance |
+After running the demo (or after any code change), render the full dashboard as a self-contained HTML artifact in the chat. Follow these exact steps:
 
-## Important Design Rules
-
-1. **B1 confidence inversion** — if `is_mismatch=False`, bucket confidence = `100 - raw_confidence`
-2. **B6/B7 fast path** — confidence=0 and no LLM if no out-of-catalog specs / no quantity data
-3. **city_mismatch** in ctx = buyer GLB city vs IP city (suspicious login), NOT buyer vs seller city
-4. **selection_rejection_type=A** = seller selected for distribution, NOT that they responded
-5. **All count metrics** output as `{count, total, pct, label}` format for direct UI display
-6. **No Gateway summariser in B3/B6/B7** — Parallel AI returns fix directly (cost saving)
-7. **Flash Lite** used for B4/B5 Gateway calls — `model=settings.GEMINI_FLASH_LITE_MODEL`
-
-## Running the Project
-
+### Step 1 — Get the RCA JSON
+Start the API server if not running, then fetch the report:
 ```bash
-# Start server
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+# Start server in background (skip if already running)
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+sleep 3
 
-# Test demo endpoint
-curl http://localhost:8000/health
-curl http://localhost:8000/report/demo
+# Fetch the full report JSON
+curl -s http://localhost:8000/report/demo
 ```
 
-## Current Demo Data Result (offer_id: 144220567946)
-- 4 overlapping issues: B5 Seller Side Failure (100%), B1 MCAT Mismatch (~2% after fix), B2 Thin Content (85%), B4 Low Buyer Intent (80%)
-- B3 Spec Contradiction: ~5% (no contradiction found)
-- B6 Spec Value Quality: 0% (all values in catalog)
-- B7 Quantity Mismatch: ~5% (no retail quantity issue)
+If the server is already running, just run the curl command.
 
-## If the user passes an argument ($ARGUMENTS)
-Treat it as either:
-- An offer_id to analyse
-- A bucket name (B1–B7) to focus on
-- A task description to execute
+### Step 2 — Read the artifact template
+Read the file `ui/artifact_template.html` in full.
 
-Read `CLAUDE.md` for full context before making any changes.
+### Step 3 — Inject data and output artifact
+In the template, find this exact line:
+```
+window.RCA_DATA = null; /* __INJECT_RCA_DATA__ */
+```
+Replace it with:
+```
+window.RCA_DATA = <PASTE_FULL_JSON_HERE>;
+```
+Where `<PASTE_FULL_JSON_HERE>` is the complete JSON object returned by `/report/demo`.
+
+Then output the entire modified HTML as an artifact:
+
+```
+<antArtifact identifier="rca-dashboard" type="text/html" title="BL RCA Dashboard — {offer_name}">
+[full modified HTML here]
+</antArtifact>
+```
+
+### What the dashboard shows
+- **Section 1** — BuyLead form with all specs (filled/empty, priority stars, option pills)
+- **Section 2** — Buyer profile (verification, intent score, competing seller flags)
+- **Section 3** — Seller pool (credits, quality, distance, per-seller blockers, B5 diagnosis)
+- **Section 4** — RCA Diagnosis (radar chart, Venn overlap diagram, bucket cards with fixes, all 7 score bars)
+
+## References
+See `references/` folder for detailed bucket logic and data schema.

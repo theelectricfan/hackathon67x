@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BL RCA Agent — IndiaMART</title>
+<style>
+:root {
+  --bg:#0b0d14; --surface:#13151f; --surface2:#1a1d2e; --surface3:#1f2235;
+  --border:#252840; --text:#dde1f5; --muted:#6b7099; --muted2:#4a4f6e;
+  --accent:#5b6af0; --green:#5bf09c; --red:#f05b5b; --orange:#f09c5b;
+  --yellow:#f0d45b; --purple:#b05bf0; --blue:#5b9cf0; --teal:#5bf0d4; --pink:#f05bd4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;}
+.logo-row{display:flex;align-items:center;gap:12px;}
+.logo-row h1{font-size:1rem;font-weight:700;letter-spacing:-.02em;}
+.logo-row .sub{font-size:.72rem;color:var(--muted);}
+.pill{background:var(--accent);color:#fff;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:12px;letter-spacing:.05em;}
+
+#report{max-width:1280px;margin:0 auto;padding:28px 20px 60px;}
+.section{margin-bottom:36px;}
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.section-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-title{font-size:1rem;font-weight:700;}
+.section-sub{font-size:.75rem;color:var(--muted);margin-left:auto;}
+
+.bl-header{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;}
+.bl-title{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+.bl-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.meta-chip{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.72rem;display:flex;gap:5px;align-items:center;}
+.meta-chip .lbl{color:var(--muted);}
+.meta-chip .val{font-weight:600;}
+.aov-chip{border-color:rgba(91,240,156,.3);background:rgba(91,240,156,.06);}
+.aov-chip .val{color:var(--green);}
+
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.spec-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.spec-card.filled{border-color:rgba(91,240,156,.25);}
+.spec-card.unfilled{opacity:.55;}
+.spec-name{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.priority-star{color:var(--yellow);font-size:.7rem;}
+.spec-options{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.opt-pill{font-size:.72rem;padding:3px 9px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted2);}
+.opt-pill.selected{background:rgba(91,240,156,.12);border-color:var(--green);color:var(--green);font-weight:700;}
+.opt-pill.other-selected{background:rgba(91,106,240,.12);border-color:var(--accent);color:var(--accent);font-weight:700;}
+.free-text-val{margin-top:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:.82rem;}
+.free-text-val.empty{color:var(--muted2);font-style:italic;}
+.other-val{font-size:.7rem;color:var(--muted);margin-top:4px;}
+.not-filled{font-size:.75rem;color:var(--muted2);margin-top:8px;font-style:italic;}
+.fill-badge{font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:4px;display:inline-block;}
+.fill-badge.ok{background:rgba(91,240,156,.12);color:var(--green);}
+.fill-badge.miss{background:rgba(240,91,91,.08);color:var(--muted2);}
+
+.buyer-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.buyer-top{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.buyer-identity .company{font-size:1.1rem;font-weight:800;}
+.buyer-identity .contact{font-size:.82rem;color:var(--muted);margin-top:3px;}
+.buyer-identity .location{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.intent-score-circle{width:64px;height:64px;border-radius:50%;border:3px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.intent-score-circle .num{font-size:1.1rem;font-weight:800;}
+.intent-score-circle .lbl{font-size:.5rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.buyer-verif{padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.verif-item{display:flex;align-items:center;gap:5px;font-size:.75rem;}
+.verif-dot{width:8px;height:8px;border-radius:50%;}
+.verif-dot.ok{background:var(--green);}
+.verif-dot.no{background:var(--red);}
+.buyer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0;border-bottom:1px solid var(--border);}
+.buyer-cell{padding:12px 16px;border-right:1px solid var(--border);}
+.buyer-cell:last-child{border-right:none;}
+.cell-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
+.cell-val{font-size:.82rem;font-weight:600;}
+.mcat-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.mcat-tag{font-size:.65rem;padding:2px 7px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.mcat-tag.interest{border-color:rgba(91,106,240,.4);color:var(--accent);background:rgba(91,106,240,.07);}
+.mcat-tag.selling{border-color:rgba(240,156,91,.3);color:var(--orange);background:rgba(240,156,91,.06);}
+.buyer-flags{padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px;}
+.flag{display:flex;align-items:center;gap:5px;font-size:.73rem;padding:4px 10px;border-radius:8px;}
+.flag.good{background:rgba(91,240,156,.07);border:1px solid rgba(91,240,156,.2);color:var(--green);}
+.flag.warn{background:rgba(240,212,91,.07);border:1px solid rgba(240,212,91,.2);color:var(--yellow);}
+.flag.bad{background:rgba(240,91,91,.07);border:1px solid rgba(240,91,91,.2);color:var(--red);}
+
+.pool-summary{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.pool-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;min-width:110px;}
+.pool-stat .ps-val{font-size:1.3rem;font-weight:800;}
+.pool-stat .ps-sub{font-size:.65rem;color:var(--muted);margin-top:1px;}
+.pool-stat .ps-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.pool-stat.warn .ps-val{color:var(--red);}
+.pool-stat.ok .ps-val{color:var(--green);}
+.sellers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.seller-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;}
+.seller-card:hover{border-color:rgba(91,106,240,.35);}
+.sc-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.sc-rank{width:28px;height:28px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);font-size:.7rem;font-weight:800;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sc-rank.top{border-color:rgba(240,212,91,.35);color:var(--yellow);}
+.sc-info{flex:1;min-width:0;}
+.sc-company{font-size:.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-mem{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.alert-badge{font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:6px;flex-shrink:0;}
+.alert-A{background:rgba(91,240,156,.12);color:var(--green);border:1px solid rgba(91,240,156,.3);}
+.alert-B{background:rgba(240,212,91,.1);color:var(--yellow);border:1px solid rgba(240,212,91,.25);}
+.alert-C{background:rgba(240,91,91,.1);color:var(--red);border:1px solid rgba(240,91,91,.2);}
+.sc-metrics{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+.sc-metric{padding:10px 8px;text-align:center;border-right:1px solid var(--border);}
+.sc-metric:last-child{border-right:none;}
+.sc-metric .mv{font-size:.88rem;font-weight:700;line-height:1.2;}
+.sc-metric .ml{font-size:.58rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:2px;}
+.mv.bad{color:var(--red)!important;} .mv.ok{color:var(--green)!important;} .mv.warn{color:var(--yellow)!important;}
+.sc-quality{padding:10px 14px;border-bottom:1px solid var(--border);}
+.quality-row{display:flex;align-items:center;gap:8px;}
+.quality-bar-bg{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.quality-bar-fill{height:100%;border-radius:3px;}
+.quality-pct{font-size:.72rem;font-weight:700;min-width:30px;text-align:right;}
+.quality-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.sc-flags{padding:10px 14px;display:flex;flex-wrap:wrap;gap:5px;}
+.sc-flag{font-size:.63rem;padding:2px 7px;border-radius:6px;display:flex;align-items:center;gap:3px;}
+.sc-flag.bad{background:rgba(240,91,91,.08);color:var(--red);border:1px solid rgba(240,91,91,.15);}
+.sc-flag.ok{background:rgba(91,240,156,.06);color:var(--green);border:1px solid rgba(91,240,156,.15);}
+.sc-flag.warn{background:rgba(240,212,91,.07);color:var(--yellow);border:1px solid rgba(240,212,91,.15);}
+.sc-blocker{padding:0 14px 10px;font-size:.65rem;color:var(--red);line-height:1.5;}
+.sc-cities{padding:8px 14px 12px;font-size:.65rem;color:var(--muted);}
+.city-chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+.city-chip{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;}
+.city-chip.match{border-color:var(--accent);color:var(--accent);background:rgba(91,106,240,.08);}
+
+.rca-top{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px;}
+@media(max-width:900px){.rca-top{grid-template-columns:1fr;}}
+.overlap-banner{border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.overlap-0{background:rgba(91,240,156,.05);border:1px solid rgba(91,240,156,.18);}
+.overlap-1{background:rgba(91,240,156,.05);border:1px solid rgba(91,240,156,.18);}
+.overlap-2{background:rgba(240,156,91,.06);border:1px solid rgba(240,156,91,.22);}
+.overlap-3plus{background:rgba(240,91,91,.06);border:1px solid rgba(240,91,91,.22);}
+.overlap-left{display:flex;align-items:baseline;gap:8px;}
+.overlap-num{font-size:2.8rem;font-weight:900;line-height:1;}
+.overlap-txt{font-size:.8rem;color:var(--muted);}
+.overlap-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.ov-chip{font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.03em;}
+
+.venn-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.venn-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);align-self:flex-start;}
+.venn-wrap svg{width:100%;max-width:300px;}
+.radar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;}
+.radar-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px;}
+.radar-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.radar-wrap svg{flex-shrink:0;}
+
+.bucket-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-bottom:16px;}
+.bucket-card{border-radius:10px;border:1px solid;overflow:hidden;}
+.bucket-card.primary{border-width:2px;}
+.bc-header{padding:14px 16px;cursor:pointer;user-select:none;}
+.bc-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.bc-name{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;}
+.bc-badges{display:flex;gap:6px;align-items:center;}
+.bc-prim{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:8px;background:rgba(255,255,255,.1);color:var(--muted);}
+.bc-toggle{font-size:.65rem;color:var(--muted);}
+.conf-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.conf-bar-bg{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.conf-bar-fill{height:100%;border-radius:4px;}
+.conf-pct{font-size:.88rem;font-weight:700;min-width:40px;text-align:right;}
+.fix-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px;}
+.fix-box{background:rgba(0,0,0,.25);border-radius:7px;padding:9px 12px;font-size:.8rem;line-height:1.6;}
+.bc-detail{border-top:1px solid rgba(255,255,255,.06);padding:12px 16px;background:rgba(0,0,0,.2);}
+.bc-detail.hidden{display:none;}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px;}
+.dg-cell{background:rgba(255,255,255,.04);border-radius:7px;padding:8px 10px;}
+.dg-val{font-size:1rem;font-weight:800;line-height:1.2;}
+.dg-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+.dg-sub{font-size:.65rem;color:var(--muted2);margin-top:2px;}
+.reasoning-box{background:rgba(0,0,0,.2);border-radius:7px;padding:9px 12px;font-size:.78rem;line-height:1.65;color:var(--muted);margin-top:8px;}
+.reasoning-box strong{color:var(--text);}
+.spec-verdict-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.sv-row{background:rgba(0,0,0,.2);border-radius:6px;padding:7px 10px;font-size:.75rem;}
+.sv-spec{font-weight:700;margin-bottom:2px;}
+.sv-val{color:var(--muted);}
+.sv-tag{display:inline-block;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:5px;}
+.sv-tag.invalid{background:rgba(240,91,91,.12);color:var(--red);}
+.sv-tag.valid{background:rgba(91,240,156,.1);color:var(--green);}
+.sv-tag.ooc{background:rgba(240,156,91,.1);color:var(--orange);}
+.seller-reason-list{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
+.sr-row{background:rgba(0,0,0,.2);border-radius:6px;padding:7px 10px;font-size:.75rem;display:flex;gap:8px;align-items:flex-start;}
+.sr-rank{font-weight:800;color:var(--muted);min-width:24px;flex-shrink:0;}
+.sr-text{color:var(--muted);line-height:1.5;}
+
+.score-bars{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.score-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;}
+.sb-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.sb-name{font-size:.72rem;width:180px;flex-shrink:0;}
+.sb-bg{flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative;}
+.sb-fill{height:100%;border-radius:3px;}
+.sb-pct{font-size:.72rem;min-width:38px;text-align:right;}
+.sb-row.active .sb-name{font-weight:700;}
+.threshold-line{position:absolute;left:40%;top:-3px;bottom:-3px;width:1px;background:rgba(255,255,255,.15);}
+.threshold-note{font-size:.6rem;color:var(--muted);text-align:right;margin-top:2px;}
+
+.skill-accordion{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.skill-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.skill-row:last-child{border-bottom:none;}
+.skill-row:hover{background:rgba(255,255,255,.03);}
+.skill-left{display:flex;align-items:center;gap:10px;}
+.skill-id{font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--surface2);color:var(--muted);}
+.skill-row-name{font-size:.8rem;font-weight:600;}
+.skill-row-conf{font-size:.72rem;color:var(--muted);}
+.skill-expand{display:none;padding:12px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border);}
+.skill-expand pre{font-size:.65rem;overflow:auto;max-height:260px;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-all;}
+
+.run-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:20px;font-size:.72rem;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+.run-info-bar strong{color:var(--text);}
+.ds-ok{color:var(--green);font-size:.65rem;font-weight:700;padding:1px 5px;background:rgba(91,240,156,.1);border-radius:4px;}
+.ds-miss{color:var(--muted2);font-size:.65rem;padding:1px 5px;}
+.ratio-val{font-size:.72rem;color:var(--muted2);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div>
+      <h1>BL RCA Agent</h1>
+      <div class="sub">Root Cause Analysis — IndiaMART BuyLeads</div>
+    </div>
+    <span class="pill">v2.2</span>
+  </div>
+  <div style="font-size:.72rem;color:var(--muted)" id="runMeta"></div>
+</header>
+
+<div id="report"></div>
+
+<script>
+/* ── DATA INJECTED BY CLAUDE ─────────────────────────────────────────────────
+   Claude replaces the null below with the full JSON from /report/demo.
+   Shape: { report: {...}, rca: {...}, skill_results: {...}, data_sources: {...} }
+   ─────────────────────────────────────────────────────────────────────────── */
+window.RCA_DATA = null; /* __INJECT_RCA_DATA__ */
+
+const ACTIVE_THRESHOLD = 40;
+
+const BC = {
+  MCAT_MISMATCH:       {fill:'#5b9cf0', bg:'rgba(91,154,240,.08)',  border:'#5b9cf0',  label:'MCAT Mismatch',       id:'B1'},
+  THIN_CONTENT:        {fill:'#f09c5b', bg:'rgba(240,156,91,.08)',  border:'#f09c5b',  label:'Thin Content',        id:'B2'},
+  SPEC_CONTRADICTION:  {fill:'#b05bf0', bg:'rgba(176,91,240,.08)',  border:'#b05bf0',  label:'Spec Contradiction',  id:'B3'},
+  LOW_BUYER_INTENT:    {fill:'#f0d45b', bg:'rgba(240,212,91,.08)',  border:'#f0d45b',  label:'Low Buyer Intent',    id:'B4'},
+  SELLER_SIDE_FAILURE: {fill:'#f05b5b', bg:'rgba(240,91,91,.08)',   border:'#f05b5b',  label:'Seller Side Failure', id:'B5'},
+  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', bg:'rgba(91,240,212,.08)',  border:'#5bf0d4',  label:'Spec Value Quality',  id:'B6'},
+  QUANTITY_MISMATCH:   {fill:'#f05bd4', bg:'rgba(240,91,212,.08)',  border:'#f05bd4',  label:'Quantity Mismatch',   id:'B7'},
+};
+
+function init() {
+  const data = window.RCA_DATA;
+  if (!data) {
+    document.getElementById('report').innerHTML =
+      '<div style="padding:60px;text-align:center;color:var(--red)">No RCA data injected. Claude should replace window.RCA_DATA with the report JSON.</div>';
+    return;
+  }
+  const {report, rca, skill_results} = data;
+  document.getElementById('runMeta').innerHTML =
+    `Run <strong style="color:var(--text)">${rca.run_id||'—'}</strong> &nbsp;·&nbsp; Offer <strong style="color:var(--text)">${rca.offer_id}</strong>`;
+  document.getElementById('report').innerHTML =
+    renderRunBar(rca, data) +
+    renderSection1(report.bl) +
+    renderSection2(report.buyer, skill_results) +
+    renderSection3(report.sellers, report.pool_signals, skill_results.seller, report.buyer.city) +
+    renderSection4(rca, skill_results);
+}
+
+function renderRunBar(rca, data) {
+  const ds = data.data_sources || {};
+  return `<div class="run-info-bar">
+    <span>Run <strong>${rca.run_id||'—'}</strong></span>
+    <span>Offer <strong>${rca.offer_id}</strong></span>
+    <span>DS5 ${ds.sold_bl_benchmark?'<span class="ds-ok">loaded</span>':'<span class="ds-miss">not loaded</span>'}</span>
+    <span>DS6 ${ds.seller_detailed?'<span class="ds-ok">loaded</span>':'<span class="ds-miss">not loaded</span>'}</span>
+  </div>`;
+}
+
+// ── SECTION 1: BuyLead Form ────────────────────────────────
+function renderSection1(bl) {
+  let html = `<div class="section">
+    <div class="section-head">
+      <div class="section-num">1</div>
+      <div class="section-title">BuyLead Form</div>
+      <div class="section-sub">${bl.specs_fill_count}/${bl.total_spec_count} specs filled</div>
+    </div>
+    <div class="bl-header">
+      <div class="bl-title">${bl.offer_name}</div>
+      <div class="bl-meta">
+        <div class="meta-chip"><span class="lbl">MCAT</span><span class="val">${bl.mcat_name}</span></div>
+        <div class="meta-chip"><span class="lbl">ID</span><span class="val">${bl.offer_id}</span></div>
+        ${bl.approval_date?`<div class="meta-chip"><span class="lbl">Approved</span><span class="val">${bl.approval_date.split(' ')[0]}</span></div>`:''}
+        ${bl.probable_order_value?`<div class="meta-chip aov-chip"><span class="lbl">AOV</span><span class="val">${bl.probable_order_value}</span></div>`:''}
+        ${bl.probable_req_type?`<div class="meta-chip"><span class="lbl">Req Type</span><span class="val">${bl.probable_req_type}</span></div>`:''}
+      </div>
+    </div>
+    <div class="spec-grid">`;
+  for (const spec of bl.specs_form) {
+    const filled = spec.is_filled;
+    html += `<div class="spec-card ${filled?'filled':'unfilled'}">
+      <div class="spec-name">
+        ${spec.priority<=2?`<span class="priority-star">${'★'.repeat(3-spec.priority)}</span>`:''}
+        ${spec.name}
+        <span class="fill-badge ${filled?'ok':'miss'}">${filled?'FILLED':'EMPTY'}</span>
+      </div>`;
+    if (spec.is_free_text) {
+      html += filled ? `<div class="free-text-val">${spec.buyer_value}</div>` : `<div class="free-text-val empty">Not specified</div>`;
+    } else {
+      html += `<div class="spec-options">`;
+      for (const opt of spec.options) {
+        const sel = filled && opt === spec.buyer_value;
+        html += `<span class="opt-pill ${sel?'selected':''}">${opt}</span>`;
+      }
+      if (spec.is_other && filled) html += `<span class="opt-pill other-selected">Other</span>`;
+      html += `</div>`;
+      if (spec.is_other && filled) html += `<div class="other-val">Typed: "${spec.buyer_value}"</div>`;
+      if (!filled) html += `<div class="not-filled">Not filled</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+// ── SECTION 2: Buyer Profile ───────────────────────────────
+function renderSection2(buyer, skills) {
+  const intent = skills?.intent || {};
+  const sc = buyer.intent_score ?? 0;
+  const iColor = sc>=70?'var(--green)':sc>=40?'var(--yellow)':'var(--red)';
+  let html = `<div class="section">
+    <div class="section-head">
+      <div class="section-num">2</div>
+      <div class="section-title">Buyer Profile</div>
+      <div class="section-sub">${buyer.city||'—'}, ${buyer.state||'—'}</div>
+    </div>
+    <div class="buyer-card">
+      <div class="buyer-top">
+        <div class="buyer-identity">
+          <div class="company">${buyer.company}</div>
+          <div class="contact">${buyer.contact}${buyer.designation&&buyer.designation!=='—'?' · '+buyer.designation:''}</div>
+          <div class="location">📍 ${buyer.city||'—'}, ${buyer.state||'—'}</div>
+        </div>
+        <div class="intent-score-circle" style="border-color:${iColor}">
+          <div class="num" style="color:${iColor}">${sc}</div>
+          <div class="lbl">Intent</div>
+        </div>
+      </div>
+      <div class="buyer-verif">
+        <div class="verif-item"><div class="verif-dot ${buyer.gst_verified?'ok':'no'}"></div>GST ${buyer.gst_verified?'Verified':'Not Verified'}</div>
+        <div class="verif-item"><div class="verif-dot ${buyer.mobile_verified?'ok':'no'}"></div>Mobile ${buyer.mobile_verified?'Verified':'Not Verified'}</div>
+        <div class="verif-item"><div class="verif-dot ${buyer.email_verified?'ok':'no'}"></div>Email ${buyer.email_verified?'Verified':'Not Verified'}</div>
+        <div class="verif-item" style="margin-left:auto;font-weight:700;color:${buyer.is_genuine?'var(--green)':'var(--red)'}">
+          ${buyer.is_genuine?'✓ Genuine Buyer':'⚠ Intent Concern'}
+        </div>
+      </div>
+      <div class="buyer-grid">
+        <div class="buyer-cell">
+          <div class="cell-lbl">Buyer History</div>
+          <div class="cell-val" style="color:${buyer.first_time_buyer?'var(--yellow)':'var(--text)'}">
+            ${buyer.first_time_buyer?'⚠ First-time Buyer':`${buyer.total_leads} leads posted`}
+          </div>
+        </div>
+        <div class="buyer-cell">
+          <div class="cell-lbl">Past Search</div>
+          <div class="cell-val">${buyer.past_search||'—'}</div>
+        </div>
+        <div class="buyer-cell">
+          <div class="cell-lbl">Interested In</div>
+          <div class="mcat-list">${(buyer.prime_mcats||[]).map(m=>`<span class="mcat-tag interest">${m}</span>`).join('')||'<span style="color:var(--muted2);font-size:.72rem">—</span>'}</div>
+        </div>
+        <div class="buyer-cell">
+          <div class="cell-lbl">Also Sells</div>
+          <div class="mcat-list">${(buyer.sell_mcats||[]).map(m=>`<span class="mcat-tag selling">${m}</span>`).join('')||'<span style="color:var(--muted2);font-size:.72rem">—</span>'}</div>
+        </div>
+      </div>
+      <div class="buyer-flags">
+        ${buyer.first_time_buyer?flag('warn','⚠ First-time lead poster'):flag('good',`✓ ${buyer.total_leads} leads in history`)}
+        ${buyer.sells_competing?flag('bad','✗ Sells competing products — possible competitor'):flag('good','✓ Not selling competing products')}
+        ${buyer.gst_verified&&buyer.mobile_verified&&buyer.email_verified?flag('good','✓ Fully verified (GST + Mobile + Email)'):flag('warn',`⚠ ${[!buyer.gst_verified?'GST':null,!buyer.mobile_verified?'Mobile':null,!buyer.email_verified?'Email':null].filter(Boolean).join(', ')} not verified`)}
+      </div>
+      ${intent.reasoning?`<div style="padding:10px 16px;font-size:.75rem;color:var(--muted);border-top:1px solid var(--border);line-height:1.65"><strong style="color:var(--text)">Intent Analysis: </strong>${intent.reasoning}</div>`:''}
+    </div></div>`;
+  return html;
+}
+function flag(t, x) { return `<div class="flag ${t}">${x}</div>`; }
+
+// ── SECTION 3: Seller Pool ─────────────────────────────────
+function renderSection3(sellers, pool, b5, buyerCity) {
+  const pm = b5?.pool_metrics || {};
+  const total = pm.pool_size || pool.total_sellers || 0;
+
+  let html = `<div class="section">
+    <div class="section-head">
+      <div class="section-num">3</div>
+      <div class="section-title">Seller Pool</div>
+      <div class="section-sub">${total} sellers matched</div>
+    </div>
+    <div class="pool-summary">
+      <div class="pool-stat ${total>0?'ok':'warn'}">
+        <div class="ps-val">${total}</div>
+        <div class="ps-lbl">Matched Sellers</div>
+      </div>
+      <div class="pool-stat ${pm.with_credits?.count>0?'ok':'warn'}">
+        <div class="ps-val">${pm.with_credits?.count??pool.sellers_with_credits??'—'}</div>
+        <div class="ps-sub">${pm.with_credits?`${pm.with_credits.pct}%`:''}</div>
+        <div class="ps-lbl">Have Credits</div>
+      </div>
+      <div class="pool-stat ${(pm.avg_quality_score||pool.avg_quality||0)>=60?'ok':'warn'}">
+        <div class="ps-val">${pm.avg_quality_score??pool.avg_quality??'—'}</div>
+        <div class="ps-lbl">Avg Quality</div>
+      </div>
+      <div class="pool-stat">
+        <div class="ps-val">${pm.with_bl_history?.label??'—'}</div>
+        <div class="ps-lbl">BL History</div>
+      </div>
+      <div class="pool-stat">
+        <div class="ps-val">${pm.active_last_30d?.label??'—'}</div>
+        <div class="ps-lbl">Active 30d</div>
+      </div>
+      <div class="pool-stat">
+        <div class="ps-val">${pm.city_match?.label??'—'}</div>
+        <div class="ps-lbl">City Match</div>
+      </div>
+      ${pm.distance_km?`<div class="pool-stat">
+        <div class="ps-val">${pm.distance_km.avg??'—'}</div>
+        <div class="ps-sub">min ${pm.distance_km.min} / max ${pm.distance_km.max} km</div>
+        <div class="ps-lbl">Avg Distance km</div>
+      </div>`:''}
+    </div>`;
+
+  if (pm.all_credits_blank || pool.all_no_credits) {
+    html += `<div style="background:rgba(240,91,91,.07);border:1px solid rgba(240,91,91,.2);border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:.78rem;color:var(--red)">
+      ✗ All ${total} matched sellers have no available credits — none can respond to this BuyLead
+    </div>`;
+  }
+  if (pm.alert_breakdown) {
+    const ab = pm.alert_breakdown;
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:.75rem">
+      <span style="color:var(--muted)">Alert Rank:</span>
+      <span style="color:var(--green)">A: ${ab.A||0}</span>
+      <span style="color:var(--yellow)">B: ${ab.B||0}</span>
+      <span style="color:var(--red)">C: ${ab.C||0}</span>
+      ${ab.unknown?`<span style="color:var(--muted2)">Unknown: ${ab.unknown}</span>`:''}
+    </div>`;
+  }
+  if (pool.thin_sold_bl_count !== null && pool.thin_sold_bl_count !== undefined) {
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:.73rem;color:var(--muted)">
+      DS5 Benchmark: <strong style="color:var(--text)">${pool.thin_sold_bl_count}</strong> thin-content BLs (0-2 specs) have sold in this MCAT historically
+    </div>`;
+  }
+  if (b5?.combined_reasoning) {
+    html += `<div style="background:rgba(240,91,91,.05);border:1px solid rgba(240,91,91,.15);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.75rem;color:var(--muted);line-height:1.6">
+      <strong style="color:var(--red)">B5 Pool Diagnosis: </strong>${b5.combined_reasoning}
+    </div>`;
+  }
+
+  html += `<div class="sellers-grid">`;
+  for (const s of sellers) html += renderSellerCard(s, buyerCity, b5);
+  html += `</div></div>`;
+  return html;
+}
+
+function renderSellerCard(s, buyerCity, b5) {
+  const qs = s.quality_score || 0;
+  const qColor = qs>=70?'var(--green)':qs>=40?'var(--yellow)':'var(--red)';
+  const alertCls = `alert-${s.alert_rank||'C'}`;
+  const credVal = s.has_credits ? (s.credits||'—') : 'NONE';
+  const creditsCls = s.has_credits ? 'ok' : 'bad';
+  const dist = s.distance_km;
+  const distLabel = dist==null?'—':dist===0?'Local':`${dist} km`;
+  const distCls = dist===0?'ok':dist>200?'bad':'warn';
+  const blCls = s.bl_purchased_1yr===0?'bad':s.bl_purchased_1yr>=10?'ok':'warn';
+
+  const b5reasons = b5?.per_seller_reasoning || [];
+  const myReason = b5reasons.find(r => r.rank === s.rank);
+
+  let html = `<div class="seller-card">
+    <div class="sc-head">
+      <div class="sc-rank ${s.rank<=2?'top':''}">#${s.rank}</div>
+      <div class="sc-info">
+        <div class="sc-company">${s.company}</div>
+        <div class="sc-mem">${s.membership}</div>
+      </div>
+      <div class="alert-badge ${alertCls}">${s.alert_rank||'?'} ${s.alert_subrank||''}</div>
+    </div>
+    <div class="sc-metrics">
+      <div class="sc-metric"><div class="mv ${creditsCls}">${credVal}</div><div class="ml">Credits</div></div>
+      <div class="sc-metric"><div class="mv ${blCls}">${s.bl_purchased_1yr}</div><div class="ml">BL/yr</div></div>
+      <div class="sc-metric"><div class="mv ${distCls}">${distLabel}</div><div class="ml">Distance</div></div>
+      <div class="sc-metric"><div class="mv ${qs>=60?'ok':qs>=30?'warn':'bad'}">${qs}</div><div class="ml">Quality</div></div>
+    </div>
+    <div class="sc-quality">
+      <div class="quality-lbl">Quality Score</div>
+      <div class="quality-row">
+        <div class="quality-bar-bg"><div class="quality-bar-fill" style="width:${qs}%;background:${qColor}"></div></div>
+        <div class="quality-pct" style="color:${qColor}">${qs}/100</div>
+      </div>
+    </div>`;
+
+  const b5sellers = b5?.per_seller || [];
+  const b5s = b5sellers.find(x => x.rank === s.rank);
+  if (b5s?.blockers?.length) {
+    html += `<div class="sc-blocker">✗ ${b5s.blockers.join(' · ')}</div>`;
+  }
+
+  html += `<div class="sc-flags">`;
+  if (!s.has_credits) html += sflag('bad','✗ No credits');
+  else html += sflag('ok','✓ Has credits');
+  if (s.bl_purchased_1yr === 0) html += sflag('bad','✗ 0 BL/yr');
+  else html += sflag('ok',`✓ ${s.bl_purchased_1yr} BL/yr`);
+  if (s.city_match) html += sflag('ok','✓ City match');
+  else html += sflag('warn','⚠ City mismatch');
+  html += `</div>`;
+
+  if (myReason?.reason) {
+    html += `<div style="padding:6px 14px 10px;font-size:.68rem;color:var(--muted);border-top:1px solid var(--border);line-height:1.5">
+      <strong style="color:var(--muted)">Why didn't respond: </strong>${myReason.reason}
+    </div>`;
+  }
+
+  if (s.preferred_cities?.length) {
+    const bcl = (buyerCity||'').toLowerCase();
+    html += `<div class="sc-cities">
+      <div style="font-size:.6rem;color:var(--muted);font-weight:600;margin-bottom:3px">Preferred Cities</div>
+      <div class="city-chips">${s.preferred_cities.map(c=>`<span class="city-chip ${c.toLowerCase()===bcl?'match':''}">${c}</span>`).join('')}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+function sflag(t, x) { return `<span class="sc-flag ${t}">${x}</span>`; }
+
+// ── SECTION 4: RCA Diagnosis ───────────────────────────────
+function renderSection4(rca, skills) {
+  const active = rca.active_buckets || [];
+  const scores = rca.bucket_scores || {};
+  const n = rca.overlap_count || 0;
+  const bannerCls = n>=3?'overlap-3plus':n===2?'overlap-2':n===1?'overlap-1':'overlap-0';
+  const numColor = n>=3?'var(--red)':n===2?'var(--orange)':n===1?'var(--green)':'var(--muted)';
+
+  let html = `<div class="section">
+    <div class="section-head">
+      <div class="section-num">4</div>
+      <div class="section-title">RCA Diagnosis</div>
+      <div class="section-sub">${rca.overlap_summary}</div>
+    </div>`;
+
+  html += `<div class="rca-top">
+    <div>
+      <div class="overlap-banner ${bannerCls}">
+        <div>
+          <div class="overlap-left">
+            <div class="overlap-num" style="color:${numColor}">${n}</div>
+            <div class="overlap-txt">${n===1?'active issue detected':n===0?'no significant issues':'overlapping issues detected'}</div>
+          </div>
+          <div class="overlap-chips">`;
+  for (const ab of active) {
+    const c = BC[ab.bucket] || {};
+    html += `<span class="ov-chip" style="background:${c.bg};color:${c.fill};border:1px solid ${c.border}">${c.id} ${c.label} ${ab.confidence}%</span>`;
+  }
+  html += `</div></div></div>`;
+  html += renderRadar(scores);
+  html += `</div>`;
+
+  if (active.length >= 2) html += renderVenn(active);
+  html += `</div>`;
+
+  html += `<div class="bucket-cards">`;
+  for (let i = 0; i < active.length; i++) {
+    const ab = active[i];
+    const c = BC[ab.bucket] || {};
+    const skillKey = Object.entries({mcat:'MCAT_MISMATCH',content:'THIN_CONTENT',spec:'SPEC_CONTRADICTION',intent:'LOW_BUYER_INTENT',seller:'SELLER_SIDE_FAILURE',spec_quality:'SPEC_VALUE_QUALITY',quantity:'QUANTITY_MISMATCH'}).find(([k,v])=>v===ab.bucket)?.[0];
+    const sr = skills[skillKey] || {};
+    const uid = `bd_${ab.bucket}`;
+    html += `<div class="bucket-card ${i===0?'primary':''}" style="background:${c.bg};border-color:${c.border}">
+      <div class="bc-header" onclick="toggleDetail('${uid}')">
+        <div class="bc-label-row">
+          <div class="bc-name" style="color:${c.fill}">${c.id} ${c.label}</div>
+          <div class="bc-badges">
+            ${i===0?`<div class="bc-prim">PRIMARY</div>`:''}
+            <div class="bc-toggle" id="tog_${uid}">▼ details</div>
+          </div>
+        </div>
+        <div class="conf-row">
+          <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${ab.confidence}%;background:${c.fill}"></div></div>
+          <div class="conf-pct" style="color:${c.fill}">${ab.confidence}%</div>
+        </div>
+        <div class="fix-lbl">Recommended Fix</div>
+        <div class="fix-box">${ab.fix||'—'}</div>
+      </div>
+      <div class="bc-detail hidden" id="${uid}">
+        ${renderBucketDetail(ab.bucket, sr, c)}
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="score-bars">
+    <div class="score-title">All 7 Bucket Scores — threshold ${ACTIVE_THRESHOLD}% = active issue</div>`;
+  for (const [b, score] of Object.entries(scores).sort((a,z)=>z[1]-a[1])) {
+    const c = BC[b] || {fill:'#666', label:b, id:'?'};
+    const isAct = score > ACTIVE_THRESHOLD;
+    html += `<div class="sb-row ${isAct?'active':''}">
+      <div class="sb-name" style="color:${isAct?c.fill:'var(--muted)'}">${c.id} ${c.label}${isAct?' ●':''}</div>
+      <div class="sb-bg">
+        <div class="sb-fill" style="width:${score}%;background:${c.fill}"></div>
+        <div class="threshold-line"></div>
+      </div>
+      <div class="sb-pct" style="color:${isAct?c.fill:'var(--muted)'}">${score}%</div>
+    </div>`;
+  }
+  html += `<div class="threshold-note">vertical line = ${ACTIVE_THRESHOLD}% threshold</div></div>`;
+
+  html += `<div class="skill-accordion">`;
+  const skillEntries = [
+    ['mcat','MCAT_MISMATCH'],['content','THIN_CONTENT'],['spec','SPEC_CONTRADICTION'],
+    ['intent','LOW_BUYER_INTENT'],['seller','SELLER_SIDE_FAILURE'],
+    ['spec_quality','SPEC_VALUE_QUALITY'],['quantity','QUANTITY_MISMATCH']
+  ];
+  for (const [k, b] of skillEntries) {
+    const c = BC[b] || {};
+    const sr = skills[k] || {};
+    const conf = sr.confidence ?? '—';
+    const uid = `acc_${k}`;
+    html += `<div class="skill-row" onclick="toggleSkill('${uid}')">
+      <div class="skill-left">
+        <div class="skill-id" style="background:${c.bg};color:${c.fill};border:1px solid ${c.border}">${c.id}</div>
+        <div class="skill-row-name">${c.label}</div>
+      </div>
+      <div class="skill-row-conf" style="color:${conf>ACTIVE_THRESHOLD?c.fill:'var(--muted)'}">${conf}% confidence</div>
+    </div>
+    <div class="skill-expand" id="${uid}">
+      <pre>${JSON.stringify(filterRaw(sr), null, 2)}</pre>
+    </div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function filterRaw(sr) {
+  const {parallel_raw, ...rest} = sr;
+  return rest;
+}
+
+function renderBucketDetail(bucket, sr, c) {
+  switch (bucket) {
+    case 'MCAT_MISMATCH':       return detailMcat(sr, c);
+    case 'THIN_CONTENT':        return detailContent(sr, c);
+    case 'SPEC_CONTRADICTION':  return detailSpec(sr, c);
+    case 'LOW_BUYER_INTENT':    return detailIntent(sr, c);
+    case 'SELLER_SIDE_FAILURE': return detailSeller(sr, c);
+    case 'SPEC_VALUE_QUALITY':  return detailSpecQuality(sr, c);
+    case 'QUANTITY_MISMATCH':   return detailQuantity(sr, c);
+    default: return `<div class="reasoning-box">${sr.reasoning||sr.fix||'No details'}</div>`;
+  }
+}
+
+function detailMcat(sr, c) {
+  return `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.is_mismatch?'var(--red)':'var(--green)'}">${sr.is_mismatch?'MISMATCH':'CORRECT'}</div><div class="dg-lbl">Category Status</div></div>
+    ${sr.suggested_mcat?`<div class="dg-cell"><div class="dg-val" style="font-size:.8rem">${sr.suggested_mcat}</div><div class="dg-lbl">Suggested Category</div></div>`:''}
+  </div>
+  ${sr.reasoning?`<div class="reasoning-box">${sr.reasoning}</div>`:''}`;
+}
+
+function detailContent(sr, c) {
+  return `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val">${sr.fill_count}/${sr.total_specs}</div><div class="dg-lbl">Specs Filled</div><div class="dg-sub">${sr.fill_pct}%</div></div>
+    <div class="dg-cell"><div class="dg-val">${sr.priority_filled}/${sr.total_priority}</div><div class="dg-lbl">Priority Specs</div><div class="dg-sub">${sr.priority_pct}%</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.is_priority1_filled?'var(--green)':'var(--red)'}">${sr.is_priority1_filled?'YES':'NO'}</div><div class="dg-lbl">P1 Filled</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.is_priority2_filled?'var(--green)':'var(--red)'}">${sr.is_priority2_filled?'YES':'NO'}</div><div class="dg-lbl">P2 Filled</div></div>
+    ${sr.thin_sold_bl_count!=null?`<div class="dg-cell"><div class="dg-val">${sr.thin_sold_bl_count}</div><div class="dg-lbl">Thin BLs Sold</div><div class="dg-sub">in this MCAT (DS5)</div></div>`:''}
+  </div>
+  ${sr.spec_review_needed?`<div style="background:rgba(240,156,91,.08);border:1px solid rgba(240,156,91,.2);border-radius:6px;padding:8px 10px;font-size:.75rem;color:var(--orange);margin-top:8px">⚠ ${sr.spec_review_reason}</div>`:''}`;
+}
+
+function detailSpec(sr, c) {
+  let html = `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.out_of_catalog_count>0?'var(--orange)':'var(--green)'}">${sr.out_of_catalog_count}</div><div class="dg-lbl">Out-of-Catalog</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.has_contradiction?'var(--red)':'var(--green)'}">${sr.has_contradiction?'YES':'NO'}</div><div class="dg-lbl">Contradiction</div></div>
+  </div>`;
+  if (sr.out_of_catalog_specs?.length) {
+    html += `<div class="spec-verdict-list">`;
+    for (const s of sr.out_of_catalog_specs) {
+      html += `<div class="sv-row"><div class="sv-spec">${s}<span class="sv-tag ooc">Out of catalog</span></div></div>`;
+    }
+    html += `</div>`;
+  }
+  if (sr.reasoning) html += `<div class="reasoning-box">${sr.reasoning}</div>`;
+  return html;
+}
+
+function detailIntent(sr, c) {
+  return `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val">${sr.verification_score??'—'}/3</div><div class="dg-lbl">Verification</div></div>
+    <div class="dg-cell"><div class="dg-val">${sr.intent_score??'—'}</div><div class="dg-lbl">Intent Score</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.is_genuine?'var(--green)':'var(--red)'}">${sr.is_genuine?'GENUINE':'SUSPECT'}</div><div class="dg-lbl">Verdict</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.sells_competing?'var(--red)':'var(--green)'}">${sr.sells_competing?'YES':'NO'}</div><div class="dg-lbl">Competing Seller</div></div>
+  </div>
+  <div class="detail-grid" style="margin-top:6px">
+    <div class="dg-cell" style="grid-column:1/-1"><div class="dg-val" style="font-size:.78rem;font-weight:500">${sr.lead_history||'—'}</div><div class="dg-lbl">Lead History</div></div>
+  </div>
+  ${sr.reasoning?`<div class="reasoning-box">${sr.reasoning}</div>`:''}`;
+}
+
+function detailSeller(sr, c) {
+  const pm = sr.pool_metrics || {};
+  let html = `<div class="detail-grid">
+    ${pm.with_credits?`<div class="dg-cell"><div class="dg-val" style="color:${pm.with_credits.count>0?'var(--green)':'var(--red)'}">${pm.with_credits.label}</div><div class="dg-lbl">Have Credits</div></div>`:''}
+    ${pm.city_match?`<div class="dg-cell"><div class="dg-val">${pm.city_match.label}</div><div class="dg-lbl">City Match</div></div>`:''}
+    ${pm.with_bl_history?`<div class="dg-cell"><div class="dg-val">${pm.with_bl_history.label}</div><div class="dg-lbl">BL History</div></div>`:''}
+    ${pm.active_last_30d?`<div class="dg-cell"><div class="dg-val">${pm.active_last_30d.label}</div><div class="dg-lbl">Active 30d</div></div>`:''}
+    ${pm.distance_km?.avg!=null?`<div class="dg-cell"><div class="dg-val">${pm.distance_km.avg}</div><div class="dg-sub">min ${pm.distance_km.min} / max ${pm.distance_km.max}</div><div class="dg-lbl">Avg Dist (km)</div></div>`:''}
+  </div>`;
+  if (sr.primary_failure_mode) html += `<div class="reasoning-box"><strong>Primary failure: </strong>${sr.primary_failure_mode}</div>`;
+  if (sr.per_seller_reasoning?.length) {
+    html += `<div class="seller-reason-list">`;
+    for (const r of sr.per_seller_reasoning) {
+      html += `<div class="sr-row"><div class="sr-rank">#${r.rank}</div><div class="sr-text">${r.company||''}: ${r.reason||'—'}</div></div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+function detailSpecQuality(sr, c) {
+  let html = `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.out_of_catalog_count>0?'var(--orange)':'var(--green)'}">${sr.out_of_catalog_count}/${sr.total_filled}</div><div class="dg-lbl">Out of Catalog</div><div class="dg-sub">${sr.out_of_catalog_pct}%</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.invalid_in_market>0?'var(--red)':'var(--green)'}">${sr.invalid_in_market??0}</div><div class="dg-lbl">Invalid in Market</div></div>
+  </div>`;
+  if (sr.out_of_catalog_specs?.length) {
+    html += `<div class="spec-verdict-list">`;
+    for (const s of sr.out_of_catalog_specs) {
+      const valid = s.is_valid_in_market;
+      html += `<div class="sv-row">
+        <div class="sv-spec">${s.spec}
+          <span class="sv-tag ooc">Out of catalog</span>
+          ${valid===true?`<span class="sv-tag valid">Valid in market</span>`:valid===false?`<span class="sv-tag invalid">Invalid in market</span>`:''}
+        </div>
+        <div class="sv-val">Buyer filled: "${s.buyer_value}" · Options: ${(s.valid_options||[]).slice(0,4).join(', ')}${s.valid_options?.length>4?'...':''}</div>
+        ${s.reasoning?`<div style="color:var(--muted2);margin-top:3px;font-size:.68rem">${s.reasoning}</div>`:''}
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+function detailQuantity(sr, c) {
+  const qs = sr.quantity_specs || {};
+  let html = `<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.req_type_retail?'var(--red)':'var(--green)'}">${sr.req_type||'—'}</div><div class="dg-lbl">Req Type</div>${sr.req_type_retail?`<div class="dg-sub" style="color:var(--red)">Retail in B2B</div>`:''}</div>
+    <div class="dg-cell"><div class="dg-val">${sr.aov||'Not provided'}</div><div class="dg-lbl">Order Value</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.is_retail_quantity?'var(--red)':'var(--green)'}">${sr.is_retail_quantity?'RETAIL':'B2B'}</div><div class="dg-lbl">Quantity Type</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.aov_quantity_mismatch?'var(--red)':'var(--green)'}">${sr.aov_quantity_mismatch?'MISMATCH':'OK'}</div><div class="dg-lbl">AOV Match</div></div>
+  </div>`;
+  if (Object.keys(qs).length) {
+    html += `<div style="margin-top:8px;font-size:.73rem;color:var(--muted)">Quantity specs: ${Object.entries(qs).map(([k,v])=>`<strong style="color:var(--text)">${k}</strong>: ${v}`).join(' · ')}</div>`;
+  }
+  if (sr.reasoning) html += `<div class="reasoning-box">${sr.reasoning}</div>`;
+  return html;
+}
+
+// ── Radar Chart ────────────────────────────────────────────
+function renderRadar(scores) {
+  const keys = Object.keys(BC);
+  const N = keys.length;
+  const cx=150, cy=150, R=100, rThresh=40;
+  const pts = keys.map((k,i) => {
+    const angle = (i/N)*2*Math.PI - Math.PI/2;
+    const r = (scores[k]||0)/100*R;
+    return {x:cx+r*Math.cos(angle), y:cy+r*Math.sin(angle), ax:cx+R*Math.cos(angle), ay:cy+R*Math.sin(angle), label:BC[k].id, fill:BC[k].fill, score:scores[k]||0, isActive:(scores[k]||0)>ACTIVE_THRESHOLD, angle};
+  });
+  const polygon = pts.map(p=>`${p.x},${p.y}`).join(' ');
+  const threshPts = keys.map((_,i) => {
+    const angle = (i/N)*2*Math.PI - Math.PI/2;
+    const r = rThresh/100*R;
+    return `${cx+r*Math.cos(angle)},${cy+r*Math.sin(angle)}`;
+  }).join(' ');
+
+  let svg = `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">`;
+  for (const pct of [25,50,75,100]) {
+    const r = pct/100*R;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
+  }
+  svg += `<polygon points="${threshPts}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  for (const p of pts) svg += `<line x1="${cx}" y1="${cy}" x2="${p.ax}" y2="${p.ay}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
+  svg += `<polygon points="${polygon}" fill="rgba(91,106,240,.15)" stroke="rgba(91,106,240,.5)" stroke-width="1.5"/>`;
+  for (const p of pts) {
+    if (p.isActive) svg += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${p.fill}"/>`;
+    else svg += `<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="rgba(255,255,255,.25)"/>`;
+  }
+  for (const p of pts) {
+    const lx = cx + (R+16)*Math.cos(p.angle);
+    const ly = cy + (R+16)*Math.sin(p.angle);
+    svg += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="${p.isActive?p.fill:'rgba(255,255,255,.35)'}" font-weight="${p.isActive?'700':'400'}">${p.label}</text>`;
+  }
+  svg += `</svg>`;
+  return `<div class="venn-wrap" style="min-width:180px">
+    <div class="venn-title">Score Radar — 7 Buckets</div>
+    ${svg}
+  </div>`;
+}
+
+// ── Venn Diagram ───────────────────────────────────────────
+function renderVenn(active) {
+  if (!active || active.length < 2) return '';
+  const n = active.length;
+  const W=560, H=n<=3?220:260;
+  let svg = '';
+
+  if (n === 2) {
+    const [a,b] = active;
+    const ca=BC[a.bucket]||{fill:'#aaa'}, cb=BC[b.bucket]||{fill:'#aaa'};
+    svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="195" cy="${H/2}" r="110" fill="${ca.fill}" fill-opacity=".12" stroke="${ca.fill}" stroke-width="1.5" stroke-opacity=".5"/>
+      <circle cx="365" cy="${H/2}" r="110" fill="${cb.fill}" fill-opacity=".12" stroke="${cb.fill}" stroke-width="1.5" stroke-opacity=".5"/>
+      <text x="140" y="${H/2-18}" text-anchor="middle" font-size="11" fill="${ca.fill}" font-weight="700">${ca.id}</text>
+      <text x="140" y="${H/2}" text-anchor="middle" font-size="10" fill="${ca.fill}">${a.confidence}%</text>
+      <text x="420" y="${H/2-18}" text-anchor="middle" font-size="11" fill="${cb.fill}" font-weight="700">${cb.id}</text>
+      <text x="420" y="${H/2}" text-anchor="middle" font-size="10" fill="${cb.fill}">${b.confidence}%</text>
+      <text x="280" y="${H/2-8}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)">OVERLAP</text>
+      <text x="280" y="${H/2+8}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)">2 issues</text>
+    </svg>`;
+  } else if (n === 3) {
+    const [a,b,c3] = active;
+    const ca=BC[a.bucket]||{fill:'#aaa'}, cb=BC[b.bucket]||{fill:'#aaa'}, cc=BC[c3.bucket]||{fill:'#aaa'};
+    svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="200" cy="95" r="95" fill="${ca.fill}" fill-opacity=".1" stroke="${ca.fill}" stroke-width="1.5" stroke-opacity=".5"/>
+      <circle cx="360" cy="95" r="95" fill="${cb.fill}" fill-opacity=".1" stroke="${cb.fill}" stroke-width="1.5" stroke-opacity=".5"/>
+      <circle cx="280" cy="190" r="95" fill="${cc.fill}" fill-opacity=".1" stroke="${cc.fill}" stroke-width="1.5" stroke-opacity=".5"/>
+      <text x="160" y="60" text-anchor="middle" font-size="11" fill="${ca.fill}" font-weight="700">${ca.id} ${a.confidence}%</text>
+      <text x="400" y="60" text-anchor="middle" font-size="11" fill="${cb.fill}" font-weight="700">${cb.id} ${b.confidence}%</text>
+      <text x="280" y="215" text-anchor="middle" font-size="11" fill="${cc.fill}" font-weight="700">${cc.id} ${c3.confidence}%</text>
+      <text x="280" y="130" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)">3 overlapping</text>
+    </svg>`;
+  } else {
+    const cols=2, rows=Math.ceil(n/cols);
+    const cw=W/cols;
+    svg = `<svg viewBox="0 0 ${W} ${rows*130}" xmlns="http://www.w3.org/2000/svg">`;
+    active.slice(0,6).forEach((ab,i) => {
+      const cc = BC[ab.bucket]||{fill:'#aaa'};
+      const col=i%cols, row=Math.floor(i/cols);
+      const cx2=cw*col+cw/2, cy2=130*row+65;
+      svg += `<circle cx="${cx2}" cy="${cy2}" r="50" fill="${cc.fill}" fill-opacity=".1" stroke="${cc.fill}" stroke-width="1.5" stroke-opacity=".5"/>`;
+      svg += `<text x="${cx2}" y="${cy2-10}" text-anchor="middle" font-size="11" fill="${cc.fill}" font-weight="700">${cc.id}</text>`;
+      svg += `<text x="${cx2}" y="${cy2+8}" text-anchor="middle" font-size="10" fill="${cc.fill}">${ab.confidence}%</text>`;
+    });
+    svg += `</svg>`;
+  }
+
+  return `<div class="radar-wrap" style="margin-bottom:16px">
+    <div class="radar-title">Overlap Venn — ${n} Active Issue${n>1?'s':''}</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      ${svg}
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${active.map(ab => {
+          const cc = BC[ab.bucket]||{};
+          return `<div style="display:flex;align-items:center;gap:8px;font-size:.75rem">
+            <div style="width:10px;height:10px;border-radius:50%;background:${cc.fill};flex-shrink:0"></div>
+            <div><strong style="color:${cc.fill}">${cc.id}</strong> ${cc.label}</div>
+            <div style="color:var(--muted);margin-left:auto">${ab.confidence}%</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  const tog = document.getElementById('tog_'+id);
+  if (!el) return;
+  const hidden = el.classList.contains('hidden');
+  el.classList.toggle('hidden', !hidden);
+  if (tog) tog.textContent = hidden ? '▲ hide' : '▼ details';
+}
+function toggleSkill(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+// Auto-render on load
+init();
+</script>
+</body>
+</html>

@@ -36,5 +36,25 @@ class Settings:
     LLM_RETRY_DELAY = int(os.getenv("LLM_RETRY_DELAY", 2))
     RCA_CONFIDENCE_THRESHOLD = int(os.getenv("RCA_CONFIDENCE_THRESHOLD", 60))
 
+    # Redash (replaces CSV ingestion)
+    REDASH_URL = os.getenv("REDASH_URL", "https://redash.intermesh.net")
+    REDASH_API_KEY = os.getenv("REDASH_API_KEY")
+    REDASH_POLL_INTERVAL = float(os.getenv("REDASH_POLL_INTERVAL", 1.5))
+    REDASH_QUERY_TIMEOUT = int(os.getenv("REDASH_QUERY_TIMEOUT", 180))
+    # Data-source IDs on this Redash instance (override per env)
+    REDASH_DS_BL       = int(os.getenv("REDASH_DS_BL", 16))     # pg-imblr-prod-live → eto_ofr, eto_unsold_leads
+    REDASH_DS_BUYER    = int(os.getenv("REDASH_DS_BUYER", 16))
+    REDASH_DS_SELLER   = int(os.getenv("REDASH_DS_SELLER", 16))
+    REDASH_DS_MCATSPEC = int(os.getenv("REDASH_DS_MCATSPEC", 8))  # im_dwh_rpt → fact_im_*
+
+    # DWH (direct Redshift connection — bypasses Redash for heavier queries)
+    DWH_HOST     = os.getenv("DWH_HOST")
+    DWH_PORT     = int(os.getenv("DWH_PORT", 5439))
+    DWH_DB       = os.getenv("DWH_DB")
+    DWH_USER     = os.getenv("DWH_USER")
+    DWH_PASSWORD = os.getenv("DWH_PASSWORD")
+    DWH_SSLMODE  = os.getenv("DWH_SSLMODE", "require")
+    DWH_CONNECT_TIMEOUT = int(os.getenv("DWH_CONNECT_TIMEOUT", 15))
+
 
 settings = Settings()

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RCA Analysis — IndiaMART BuyLead</title>
+<style>
+:root {
+  --bg:#0a0c14; --surface:#13151f; --surface2:#1a1d2e; --surface3:#1f2235;
+  --border:#252840; --text:#e8ebf7; --muted:#7d83a8; --muted2:#4d5275;
+  --accent:#6c7cf2;
+  --green:#5bf09c; --red:#f05b5b; --orange:#f09c5b; --yellow:#f0d45b;
+  --purple:#b05bf0; --blue:#5b9cf0; --teal:#5bf0d4; --pink:#f05bd4; --grey:#a0a8c6;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:radial-gradient(ellipse at top, #14172a 0%, #0a0c14 70%);
+  color:var(--text);font-family:'Inter','Segoe UI',system-ui,sans-serif;
+  min-height:100vh;font-size:14px;font-feature-settings:"cv11","ss01";
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+header{padding:16px 32px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);background:rgba(13,15,25,.85);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:50;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-logo{width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:#fff;}
+.brand h1{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;}
+.brand .sub{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.status{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted);}
+.dot{width:7px;height:7px;border-radius:50%;background:#3a3f5c;}
+.dot.ok{background:var(--green);box-shadow:0 0 8px rgba(91,240,156,.6);}
+
+/* ── Input row ─────────────────────────────────────────────── */
+.input-row{max-width:1100px;margin:24px auto 0;padding:0 24px;display:flex;gap:10px;flex-wrap:wrap;}
+.input-row input{
+  flex:1;min-width:240px;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:13px 16px;border-radius:10px;font-size:.95rem;
+  font-family:'JetBrains Mono','SF Mono',monospace;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,124,242,.18);}
+.btn{
+  background:var(--accent);color:#fff;border:none;border-radius:10px;
+  padding:13px 26px;font-size:.92rem;font-weight:700;cursor:pointer;
+  transition:opacity .15s,transform .1s;display:inline-flex;align-items:center;gap:8px;
+}
+.btn:hover{opacity:.88;}
+.btn:active{transform:translateY(1px);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--accent);color:var(--text);}
+
+/* ── Loading state ─────────────────────────────────────────── */
+#loading{max-width:680px;margin:0 auto;padding:64px 24px;text-align:center;display:none;}
+#loading.show{display:block;}
+.spinner{width:42px;height:42px;border:3px solid rgba(108,124,242,.2);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-step{color:var(--muted);font-size:.85rem;margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
+.load-progress{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:18px;}
+.load-progress .step-chip{font-size:.62rem;padding:3px 9px;border-radius:8px;background:var(--surface);color:var(--muted2);border:1px solid var(--border);}
+.load-progress .step-chip.active{background:rgba(108,124,242,.15);color:var(--accent);border-color:var(--accent);}
+.load-progress .step-chip.done{background:rgba(91,240,156,.1);color:var(--green);border-color:rgba(91,240,156,.3);}
+
+/* ── Report ────────────────────────────────────────────────── */
+#report{max-width:1180px;margin:0 auto;padding:24px;display:none;}
+#report.show{display:block;}
+
+/* BL header strip */
+.bl-strip{
+  background:linear-gradient(135deg, rgba(108,124,242,.08), rgba(176,91,240,.05));
+  border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:24px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+}
+.bl-strip .left .title{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;}
+.bl-strip .left .meta{font-size:.78rem;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;}
+.bl-strip .left .meta span strong{color:var(--text);}
+.bl-strip .right{font-size:.7rem;color:var(--muted);text-align:right;}
+.bl-strip .right .source{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(91,240,156,.08);color:var(--green);
+  padding:3px 8px;border-radius:6px;font-weight:700;font-size:.62rem;
+  letter-spacing:.06em;margin-top:4px;}
+
+/* Verdict banner */
+.verdict{
+  border-radius:16px;padding:28px 32px;margin-bottom:24px;
+  display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+  border:1px solid;
+}
+.verdict.sev-0{background:linear-gradient(135deg,rgba(91,240,156,.06),rgba(91,240,156,.02));border-color:rgba(91,240,156,.25);}
+.verdict.sev-1{background:linear-gradient(135deg,rgba(240,212,91,.06),rgba(240,212,91,.02));border-color:rgba(240,212,91,.3);}
+.verdict.sev-2{background:linear-gradient(135deg,rgba(240,156,91,.08),rgba(240,156,91,.02));border-color:rgba(240,156,91,.3);}
+.verdict.sev-3{background:linear-gradient(135deg,rgba(240,91,91,.08),rgba(240,91,91,.02));border-color:rgba(240,91,91,.32);}
+.verdict-count{
+  font-size:5rem;font-weight:900;line-height:.9;letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+}
+.verdict.sev-0 .verdict-count{color:var(--green);}
+.verdict.sev-1 .verdict-count{color:var(--yellow);}
+.verdict.sev-2 .verdict-count{color:var(--orange);}
+.verdict.sev-3 .verdict-count{color:var(--red);}
+.verdict-count-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-top:6px;}
+.verdict h2{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin-bottom:6px;}
+.verdict p{font-size:.92rem;color:var(--muted);line-height:1.55;}
+.active-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.act-pill{font-size:.65rem;padding:3px 9px;border-radius:8px;font-weight:700;letter-spacing:.04em;border:1px solid;}
+
+/* Primary fix card */
+.primary-fix-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:22px 26px;margin-bottom:24px;display:flex;gap:20px;align-items:flex-start;
+}
+.primary-fix-card .pf-icon{
+  width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;
+}
+.primary-fix-card .pf-body{flex:1;min-width:0;}
+.primary-fix-card .pf-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:5px;}
+.primary-fix-card .pf-headline{font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+.primary-fix-card .pf-fix{font-size:.9rem;line-height:1.6;color:var(--text);}
+
+/* Bucket grid */
+.section-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin:30px 0 14px;font-weight:700;}
+.bucket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.bucket{
+  background:var(--surface);border:1px solid var(--border);border-radius:13px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:12px;
+  cursor:pointer;transition:transform .15s,border-color .15s,background .15s;
+  position:relative;overflow:hidden;
+}
+.bucket::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:currentColor;opacity:.6;}
+.bucket:hover{transform:translateY(-2px);}
+.bucket.active{border-color:rgba(255,255,255,.15);}
+.bucket.expanded{cursor:default;}
+.bucket .b-head{display:flex;align-items:center;justify-content:space-between;}
+.bucket .b-id{
+  font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;
+  background:rgba(255,255,255,.07);color:var(--muted);font-family:'JetBrains Mono',monospace;
+}
+.bucket.active .b-id{background:rgba(255,255,255,.1);color:currentColor;}
+.bucket .b-name{font-size:.82rem;font-weight:700;color:var(--text);margin-top:4px;}
+.bucket .b-bar-wrap{position:relative;height:6px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
+.bucket .b-bar{height:100%;background:currentColor;border-radius:4px;transition:width .6s ease;}
+.bucket .b-conf{font-family:'JetBrains Mono',monospace;font-size:1.45rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+.bucket .b-conf-row{display:flex;align-items:baseline;gap:8px;justify-content:space-between;}
+.bucket .b-conf-tag{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.bucket .b-conf-tag.active{color:currentColor;font-weight:700;}
+.bucket .b-fix{font-size:.78rem;color:var(--muted);line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.bucket.expanded .b-fix{-webkit-line-clamp:unset;}
+.b-detail{display:none;border-top:1px solid var(--border);margin-top:6px;padding-top:12px;}
+.bucket.expanded .b-detail{display:block;}
+.b-detail .b-reasoning{font-size:.78rem;color:var(--text);line-height:1.65;background:rgba(0,0,0,.18);padding:10px 12px;border-radius:8px;margin-bottom:10px;}
+.b-detail .b-meta{font-size:.7rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:14px;}
+.b-detail .b-meta b{color:var(--text);font-weight:600;}
+
+/* Footer info bar */
+.footer-bar{
+  margin-top:28px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;font-size:.7rem;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;
+}
+.footer-bar strong{color:var(--text);}
+.footer-bar .pulled-from{color:var(--green);font-weight:700;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#1e2030;border:1px solid var(--border);color:var(--text);
+  padding:11px 20px;border-radius:10px;font-size:.82rem;opacity:0;transform:translateY(8px);
+  transition:all .25s;pointer-events:none;z-index:200;max-width:340px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-logo">R</div>
+    <div>
+      <h1>RCA Analysis</h1>
+      <div class="sub">BuyLead Root-Cause Diagnostic · IndiaMART</div>
+    </div>
+  </div>
+  <div class="status">
+    <span class="dot" id="apiDot"></span>
+    <span id="apiTxt">checking…</span>
+  </div>
+</header>
+
+<form class="input-row" onsubmit="event.preventDefault();runByOffer()">
+  <input id="offerInput" type="text" inputmode="numeric" placeholder="Enter BuyLead ID (e.g. 144220567946)" value="144220567946" autocomplete="off"/>
+  <button class="btn" id="runBtn" type="submit">Run RCA →</button>
+  <a class="btn btn-outline" href="/" style="text-decoration:none">Classic view</a>
+</form>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="load-step" id="loadStep">Initialising…</div>
+  <div class="load-progress" id="loadProgress"></div>
+</div>
+
+<div id="report"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';   // same-origin (served by FastAPI)
+const ACTIVE_THRESHOLD = 40;
+
+const BC = {
+  MCAT_MISMATCH:       {fill:'#5b9cf0', label:'MCAT Mismatch',       id:'B1'},
+  THIN_CONTENT:        {fill:'#f09c5b', label:'Thin Content',        id:'B2'},
+  SPEC_CONTRADICTION:  {fill:'#b05bf0', label:'Spec Contradiction',  id:'B3'},
+  LOW_BUYER_INTENT:    {fill:'#f0d45b', label:'Low Buyer Intent',    id:'B4'},
+  SELLER_SIDE_FAILURE: {fill:'#f05b5b', label:'Seller Side Failure', id:'B5'},
+  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', label:'Spec Value Quality',  id:'B6'},
+  QUANTITY_MISMATCH:   {fill:'#f05bd4', label:'Quantity Mismatch',   id:'B7'},
+  RETAIL_QUERY:        {fill:'#a0a8c6', label:'Retail Query',        id:'B8'},
+};
+
+const SKILL_KEY = {
+  MCAT_MISMATCH:'mcat',          THIN_CONTENT:'content',
+  SPEC_CONTRADICTION:'spec',     LOW_BUYER_INTENT:'intent',
+  SELLER_SIDE_FAILURE:'seller',  SPEC_VALUE_QUALITY:'spec_quality',
+  QUANTITY_MISMATCH:'quantity',  RETAIL_QUERY:'retail',
+};
+
+const STEPS = [
+  'Fetching BL data from Redash',
+  'Loading buyer profile',
+  'Mapping seller pool',
+  'Loading MCAT spec catalog',
+  'Loading 90-day sold-BL benchmark',
+  'Enriching seller details',
+  'B1: MCAT mismatch check',
+  'B2-B8: bucket analysis (parallel)',
+  'Synthesising verdict',
+];
+
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API}/health`,{signal:AbortSignal.timeout(3000)});
+    if(r.ok){document.getElementById('apiDot').className='dot ok';document.getElementById('apiTxt').textContent='connected';}
+    else throw 0;
+  } catch { document.getElementById('apiTxt').textContent='API offline'; }
+}
+checkHealth();
+
+async function runByOffer() {
+  const v = (document.getElementById('offerInput').value || '').trim();
+  if(!/^\d+$/.test(v)) { toast('Enter a numeric BuyLead ID', true); return; }
+
+  document.getElementById('report').classList.remove('show');
+  const loading = document.getElementById('loading');
+  loading.classList.add('show');
+  document.getElementById('runBtn').disabled = true;
+
+  // Animate the step list
+  const stepEl = document.getElementById('loadStep');
+  const progEl = document.getElementById('loadProgress');
+  progEl.innerHTML = STEPS.map((s,i)=>`<span class="step-chip" id="sc${i}">${s.replace(/^B\d.*?:\s*/,'')}</span>`).join('');
+  let si = 0;
+  stepEl.textContent = STEPS[0];
+  document.getElementById('sc0').classList.add('active');
+  const t = setInterval(()=>{
+    document.getElementById('sc'+si)?.classList.remove('active');
+    document.getElementById('sc'+si)?.classList.add('done');
+    si = (si+1) % STEPS.length;
+    document.getElementById('sc'+si)?.classList.add('active');
+    stepEl.textContent = STEPS[si];
+  }, 1400);
+
+  try {
+    const res = await fetch(`${API}/report/by-offer/${v}`);
+    clearInterval(t);
+    if(!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Request failed'); }
+    const data = await res.json();
+    render(data);
+    loading.classList.remove('show');
+    document.getElementById('report').classList.add('show');
+    toast(`Verdict ready — ${data.rca.overlap_count || 0} active issue${data.rca.overlap_count===1?'':'s'}`);
+  } catch(e) {
+    clearInterval(t);
+    loading.classList.remove('show');
+    toast('Error: '+e.message, true);
+  } finally {
+    document.getElementById('runBtn').disabled = false;
+  }
+}
+
+function render(data) {
+  const {report, rca, skill_results, data_sources, timings} = data;
+  const bl = report.bl;
+  document.getElementById('report').innerHTML = `
+    ${renderStrip(bl, data_sources, rca)}
+    ${renderVerdict(rca)}
+    ${rca.primary_bucket ? renderPrimaryFix(rca) : ''}
+    <div class="section-title">All 8 buckets · click any to expand</div>
+    ${renderBuckets(rca, skill_results)}
+    ${renderFooter(rca, timings)}
+  `;
+}
+
+function renderStrip(bl, ds, rca) {
+  return `<div class="bl-strip">
+    <div class="left">
+      <div class="title">${escapeHtml(bl.offer_name)}</div>
+      <div class="meta">
+        <span><strong>${escapeHtml(bl.mcat_name||'—')}</strong> · MCAT</span>
+        <span>Offer <strong>${bl.offer_id}</strong></span>
+        ${bl.probable_order_value ? `<span>AOV <strong>${escapeHtml(bl.probable_order_value)}</strong></span>` : ''}
+        ${bl.probable_req_type ? `<span>Req <strong>${escapeHtml(bl.probable_req_type)}</strong></span>` : ''}
+        <span>${bl.specs_fill_count}/${bl.total_spec_count} specs</span>
+      </div>
+    </div>
+    <div class="right">
+      <div>Run · ${rca.run_id || '—'}</div>
+      <div class="source">${(ds?.source || 'unknown').toUpperCase()}</div>
+    </div>
+  </div>`;
+}
+
+function renderVerdict(rca) {
+  const n = rca.overlap_count || 0;
+  const sev = n>=3 ? 'sev-3' : n>=2 ? 'sev-2' : n>=1 ? 'sev-1' : 'sev-0';
+  const headline = n===0
+    ? 'No significant issues detected'
+    : n===1
+      ? `1 root cause identified`
+      : `${n} overlapping issues identified`;
+  const subhead = n===0
+    ? 'This BL does not show signs of the eight common failure patterns. Investigate channel-specific factors.'
+    : `Primary: <strong style="color:${BC[rca.primary_bucket]?.fill}">${BC[rca.primary_bucket]?.label||rca.primary_bucket}</strong> at ${rca.primary_confidence}% confidence.${rca.secondary_bucket ? ` Secondary: <strong style="color:${BC[rca.secondary_bucket]?.fill}">${BC[rca.secondary_bucket]?.label}</strong> at ${rca.secondary_confidence}%.` : ''}`;
+  const pills = (rca.active_buckets || []).map(ab => {
+    const c = BC[ab.bucket] || {};
+    return `<span class="act-pill" style="color:${c.fill};border-color:${c.fill};background:${c.fill}11">${c.id} · ${ab.confidence}%</span>`;
+  }).join('');
+  return `<div class="verdict ${sev}">
+    <div>
+      <div class="verdict-count">${n}</div>
+      <div class="verdict-count-lbl">active issue${n===1?'':'s'}</div>
+    </div>
+    <div>
+      <h2>${headline}</h2>
+      <p>${subhead}</p>
+      ${pills ? `<div class="active-pills">${pills}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPrimaryFix(rca) {
+  const c = BC[rca.primary_bucket] || {};
+  return `<div class="primary-fix-card" style="border-left:3px solid ${c.fill}">
+    <div class="pf-icon" style="background:${c.fill}22;color:${c.fill}">${c.id}</div>
+    <div class="pf-body">
+      <div class="pf-lbl">Recommended Action · ${c.label}</div>
+      <div class="pf-headline">Confidence ${rca.primary_confidence}%</div>
+      <div class="pf-fix">${escapeHtml(rca.primary_fix || '—')}</div>
+    </div>
+  </div>`;
+}
+
+function renderBuckets(rca, skills) {
+  // Sort: active first (desc by confidence), then inactive (desc)
+  const entries = Object.entries(rca.bucket_scores || {})
+    .map(([b, s])=>({b, s, active: s > ACTIVE_THRESHOLD}))
+    .sort((a, z)=> (z.active - a.active) || (z.s - a.s));
+  return `<div class="bucket-grid">${
+    entries.map(e => bucketCard(e.b, e.s, e.active, skills, rca)).join('')
+  }</div>`;
+}
+
+function bucketCard(bucket, score, active, skills, rca) {
+  const c = BC[bucket] || {fill:'#666',label:bucket,id:'?'};
+  const sr = skills[SKILL_KEY[bucket]] || {};
+  const fix = (rca.all_bucket_fixes||{})[bucket] || sr.fix || '—';
+  const reasoning = sr.reasoning || sr.combined_reasoning || sr.primary_failure_mode || '';
+  const meta = bucketMeta(bucket, sr);
+  return `<div class="bucket ${active?'active':''}" style="color:${c.fill}" onclick="this.classList.toggle('expanded')">
+    <div class="b-head">
+      <span class="b-id">${c.id}</span>
+      <span class="b-conf-tag ${active?'active':''}">${active?'ACTIVE':'inactive'}</span>
+    </div>
+    <div>
+      <div class="b-conf-row">
+        <span class="b-conf" style="color:${active?c.fill:'var(--text)'}">${score}%</span>
+        <span style="color:var(--muted);font-size:.7rem">${c.label}</span>
+      </div>
+    </div>
+    <div class="b-bar-wrap"><div class="b-bar" style="width:${score}%"></div></div>
+    <div class="b-fix">${escapeHtml(fix)}</div>
+    <div class="b-detail">
+      ${reasoning ? `<div class="b-reasoning"><b style="color:${c.fill}">Reasoning · </b>${escapeHtml(reasoning)}</div>` : ''}
+      ${meta ? `<div class="b-meta">${meta}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function bucketMeta(bucket, sr) {
+  // Per-bucket diagnostic snippets
+  switch(bucket) {
+    case 'MCAT_MISMATCH':
+      return `<span><b>Mismatch:</b> ${sr.is_mismatch ? 'yes':'no'}</span>
+              ${sr.suggested_mcat ? `<span><b>Suggested:</b> ${escapeHtml(sr.suggested_mcat)}</span>` : ''}`;
+    case 'THIN_CONTENT':
+      return `<span><b>Filled:</b> ${sr.fill_count}/${sr.total_specs} (${sr.fill_pct}%)</span>
+              <span><b>Priority:</b> ${sr.priority_filled}/${sr.total_priority}</span>
+              ${sr.thin_sold_bl_count!=null ? `<span><b>Thin sold (90d):</b> ${sr.thin_sold_bl_count}</span>` : ''}`;
+    case 'SPEC_CONTRADICTION':
+      const pairs = sr.contradicting_pairs?.length || 0;
+      return `<span><b>Contradicting pairs:</b> ${pairs}</span>
+              ${sr.out_of_catalog_count ? `<span><b>OOC specs:</b> ${sr.out_of_catalog_count}</span>` : ''}`;
+    case 'LOW_BUYER_INTENT':
+      return `<span><b>Verified:</b> ${sr.verification_score}/3</span>
+              <span><b>Intent:</b> ${sr.intent_score}/100</span>
+              <span><b>History:</b> ${escapeHtml(sr.lead_history||'—')}</span>
+              ${sr.buyer_in_prime_mcat ? `<span style="color:var(--green)"><b>✓ Prime MCAT match</b></span>` : ''}`;
+    case 'SELLER_SIDE_FAILURE':
+      const pm = sr.pool_metrics || {};
+      return `<span><b>Pool:</b> ${sr.pool_size||0} sellers</span>
+              ${pm.with_credits?.label ? `<span><b>Have credits:</b> ${pm.with_credits.label}</span>` : ''}
+              ${pm.city_match?.label ? `<span><b>City match:</b> ${pm.city_match.label}</span>` : ''}
+              ${sr.primary_failure_mode ? `<span style="margin-top:6px;flex-basis:100%"><b>Mode:</b> ${escapeHtml(sr.primary_failure_mode)}</span>` : ''}`;
+    case 'SPEC_VALUE_QUALITY':
+      return `<span><b>Out-of-catalog:</b> ${sr.out_of_catalog_count||0}/${sr.total_filled||0}</span>
+              ${sr.invalid_in_market!=null ? `<span><b>Invalid values:</b> ${sr.invalid_in_market}</span>` : ''}`;
+    case 'QUANTITY_MISMATCH':
+      return `<span><b>Retail qty:</b> ${sr.is_retail_quantity?'yes':'no'}</span>
+              <span><b>AOV match:</b> ${sr.aov_quantity_mismatch?'mismatch':'ok'}</span>
+              ${sr.aov ? `<span><b>AOV:</b> ${escapeHtml(sr.aov)}</span>` : ''}`;
+    case 'RETAIL_QUERY':
+      return `<span><b>Verdict:</b> ${sr.is_retail_query?'retail':'B2B'}</span>
+              <span><b>Enq type:</b> ${escapeHtml(sr.enq_typ_label||'—')}</span>
+              ${sr.rule_req_type_retail ? `<span style="color:var(--red)"><b>⚠ Personal use</b></span>` : ''}`;
+    default:
+      return '';
+  }
+}
+
+function renderFooter(rca, timings) {
+  const t = timings || {};
+  return `<div class="footer-bar">
+    <span>Total elapsed <strong>${rca.elapsed_secs ?? '—'}s</strong></span>
+    ${t.total_secs ? `<span>Redash <strong>${t.total_secs}s</strong> (stage1 ${t.stage1_secs}s · stage2 ${t.stage2_secs}s)</span>` : ''}
+    <span style="margin-left:auto">Run id <strong>${rca.run_id || '—'}</strong></span>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function toast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!isErr);
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>

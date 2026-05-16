@@ -32,6 +32,10 @@ def run_skill_content(ctx: dict) -> dict:
     offer_name         = ctx["offer_name"]
     mcat_name          = ctx.get("mapped_mcat_name", "")
     thin_sold_count    = ctx.get("thin_sold_bl_count")
+    benchmark          = ctx.get("sold_benchmark") or {}
+    # B1 → B2 gate: if MCAT is mismatched, downstream thin-content reasoning
+    # is unreliable.  Pass it as a hint so the LLM can adjust.
+    b1_mcat_correct    = ctx.get("_b1_mcat_correct")  # None until B1 has run
 
     # ── Compute fill metrics ──────────────────────────────────────────────────
     total_specs = len(mcat_spec_catalog)
@@ -49,6 +53,29 @@ def run_skill_content(ctx: dict) -> dict:
     is_priority1_filled = any(s in specs_filled for s in p1_specs)
     is_priority2_filled = any(s in specs_filled for s in p2_specs)
 
+    # Benchmark headline: what % of sold BLs in this MCAT had ≤1 spec?
+    total_sold = benchmark.get("total_sold_bls") or 0
+    pct_thin_sold = benchmark.get("pct_sold_with_le_1_spec")
+    benchmark_line = (
+        f"In the last 90 days, {total_sold} BLs sold in this MCAT — "
+        f"{pct_thin_sold}% of them had ≤1 buyer-filled spec "
+        f"({benchmark.get('sold_bls_0_specs')} with 0 specs, "
+        f"{benchmark.get('sold_bls_1_spec')} with 1, "
+        f"{benchmark.get('sold_bls_2_specs')} with 2, "
+        f"{benchmark.get('sold_bls_3plus')} with 3+)."
+        if total_sold else "No 90-day sold-BL benchmark for this MCAT — be more conservative."
+    )
+
+    # B1 hint: if MCAT mapping is wrong, thin content is a downstream symptom
+    b1_hint = ""
+    if b1_mcat_correct is False:
+        b1_hint = ("\nIMPORTANT: B1 has flagged the MCAT mapping as INCORRECT. "
+                   "Catalog spec coverage above is therefore misleading — "
+                   "spec totals refer to the WRONG category.  Treat thin-content "
+                   "confidence with caution and call out the MCAT issue in reasoning.")
+    elif b1_mcat_correct is True:
+        b1_hint = "\nNote: B1 has confirmed the MCAT mapping is correct."
+
     # ── Parallel AI: classify thin or not ────────────────────────────────────
     parallel_result = llm.parallel(
         prompt=f"""BuyLead posted on IndiaMART (Indian B2B marketplace):
@@ -61,10 +88,14 @@ Fill metrics:
 - Priority specs filled: {priority_filled} out of {total_priority} ({priority_pct}%)
 - Priority-1 spec filled: {is_priority1_filled}
 - Priority-2 spec filled: {is_priority2_filled}
-- Thin-content BLs sold historically in this MCAT: {thin_sold_count if thin_sold_count is not None else "No benchmark data"}
+
+90-day sold-BL benchmark for this MCAT:
+{benchmark_line}
+{b1_hint}
 
 Can an Indian B2B seller uniquely identify this product/SKU from the above specs and send an accurate quote?
-Is this BuyLead too thin in content to be actionable?""",
+Is this BuyLead too thin in content to be actionable?
+Weigh the historical sold-BL benchmark — if many BLs in this MCAT sell with ≤1 spec, thin content is LESS of a blocker.""",
         task_spec={
             "input_schema":  {"type": "text"},
             "output_schema": _PARALLEL_OUTPUT_SCHEMA,

@@ -45,9 +45,11 @@ def run_skill_intent(ctx: dict) -> dict:
     email_verified     = bool(buyer.get("eto_ofr_email_verified"))
     verification_score = sum([gst_verified, mobile_verified, email_verified])
 
-    sells_competing    = ctx["sells_competing"]
-    sell_mcats         = str(buyer.get("eto_ofr_buyer_sell_mcats") or "").strip()
-    prime_mcats        = str(buyer.get("eto_ofr_buyer_prime_mcats") or "").strip()
+    sells_competing      = ctx["sells_competing"]
+    buyer_in_prime_mcat  = ctx.get("buyer_in_prime_mcat", False)
+    buyer_in_past_search = ctx.get("buyer_in_past_search", False)
+    sell_mcats           = str(buyer.get("eto_ofr_buyer_sell_mcats") or "").strip()
+    prime_mcats          = str(buyer.get("eto_ofr_buyer_prime_mcats") or "").strip()
 
     channel_raw        = str(ctx.get("mod_id", "")).strip().upper()
     channel_label      = _CHANNEL_LABELS.get(channel_raw, channel_raw or "Unknown")
@@ -78,6 +80,16 @@ BUYLEAD: "{offer_name}" (Category: {mcat_name})
 - First-time buyer:   {is_first_time}
 - Past search MCAT:   {past_search}
 - Channel:            {channel_label}
+
+── CATEGORY FIT (strong intent signals — heavily weight these) ──
+- Buying category in buyer's PRIME MCats: {buyer_in_prime_mcat}    ← TRUE = strong genuine signal (the buyer's stated line of business)
+- Buying category in buyer's PAST SEARCH: {buyer_in_past_search}   ← TRUE = prior research = real demand
+
+Calibration: anchor `confidence` (= how sure this is LOW intent) as follows:
+- 3/3 verified + buyer_in_prime_mcat + not sells_competing               →  confidence  5-20  (clearly genuine)
+- 2-3/3 verified + buyer_in_prime_mcat, but first-time + no past search   →  confidence 20-40  (probably genuine)
+- Unverified or competing-seller, mixed signals                           →  confidence 50-70
+- Multiple red flags (no verification, sells competing, no profile, fake) →  confidence 80-100
 
 ── COMPETITIVE SIGNALS ──
 - Buyer also sells competing category: {sells_competing}
@@ -115,6 +127,8 @@ Return JSON only:
         "is_first_time_buyer": is_first_time,
         "lead_history":        lead_history,
         "sells_competing":     sells_competing,
+        "buyer_in_prime_mcat": buyer_in_prime_mcat,
+        "buyer_in_past_search": buyer_in_past_search,
         "sell_mcats":          sell_mcats,
         "channel":             channel_label,
         # LLM result

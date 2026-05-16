@@ -1,16 +1,29 @@
 """
-RCA Orchestrator — runs all 7 skills, ranks by confidence, reports full overlap.
+RCA Orchestrator — runs all 8 skills, ranks by confidence, reports full overlap.
+
+Execution model
+---------------
+1. B1 (MCAT mismatch) runs first — its outcome gates B2.
+2. Remaining 7 skills (B2-B8) run in parallel via ThreadPoolExecutor;
+   each is dominated by LLM I/O so threads parallelise cleanly.
 """
+import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from langfuse_client import observe, flush
-from output.result_writer import ResultWriter
-from skills.skill_mcat import run_skill_mcat
-from skills.skill_content import run_skill_content
-from skills.skill_spec import run_skill_spec
-from skills.skill_intent import run_skill_intent
-from skills.skill_seller import run_skill_seller
-from skills.skill_spec_quality import run_skill_spec_quality
-from skills.skill_quantity import run_skill_quantity
 from output.report_generator import generate_bl_card
+from output.result_writer import ResultWriter
+from skills.skill_content import run_skill_content
+from skills.skill_intent import run_skill_intent
+from skills.skill_mcat import run_skill_mcat
+from skills.skill_quantity import run_skill_quantity
+from skills.skill_retail import run_skill_retail
+from skills.skill_seller import run_skill_seller
+from skills.skill_spec import run_skill_spec
+from skills.skill_spec_quality import run_skill_spec_quality
+
+logger = logging.getLogger(__name__)
 
 
 BUCKET_ORDER = [
@@ -21,6 +34,7 @@ BUCKET_ORDER = [
     "SELLER_SIDE_FAILURE",
     "SPEC_VALUE_QUALITY",
     "QUANTITY_MISMATCH",
+    "RETAIL_QUERY",
 ]
 
 BUCKET_LABELS = {
@@ -31,9 +45,9 @@ BUCKET_LABELS = {
     "SELLER_SIDE_FAILURE": "Seller Side Failure",
     "SPEC_VALUE_QUALITY":  "Spec Value Quality",
     "QUANTITY_MISMATCH":   "Quantity Mismatch",
+    "RETAIL_QUERY":        "Retail Query",
 }
 
-# Buckets scoring above this threshold are considered active issues
 ACTIVE_THRESHOLD = 40
 
 SKILL_KEY_MAP = {
@@ -44,39 +58,63 @@ SKILL_KEY_MAP = {
     "SELLER_SIDE_FAILURE": "seller",
     "SPEC_VALUE_QUALITY":  "spec_quality",
     "QUANTITY_MISMATCH":   "quantity",
+    "RETAIL_QUERY":        "retail",
 }
+
+# Skills runnable in parallel after B1 has completed
+_PARALLEL_SKILLS = [
+    ("content",      run_skill_content),
+    ("spec",         run_skill_spec),
+    ("intent",       run_skill_intent),
+    ("seller",       run_skill_seller),
+    ("spec_quality", run_skill_spec_quality),
+    ("quantity",     run_skill_quantity),
+    ("retail",       run_skill_retail),
+]
 
 
 @observe(name="rca_orchestrator")
 def run_rca(ctx: dict) -> dict:
+    t_start = time.time()
     writer = ResultWriter(ctx["offer_id"])
     writer.save("00_bl_context", _safe_ctx(ctx))
 
-    # ── Run all 7 skills ──────────────────────────────────────────────────────
-    results = {}
+    results: dict = {}
 
+    # ── Stage 1: B1 (MCAT mismatch) — gates B2 ──────────────────────────────
     results["mcat"] = run_skill_mcat(ctx)
     writer.save("01_skill_mcat", results["mcat"])
 
-    results["content"] = run_skill_content(ctx)
-    writer.save("02_skill_content", results["content"])
+    # Pass B1 verdict to downstream skills via ctx
+    ctx = dict(ctx)  # shallow-copy so we don't mutate caller's dict
+    ctx["_b1_mcat_correct"] = not results["mcat"].get("is_mismatch", False)
 
-    results["spec"] = run_skill_spec(ctx)
-    writer.save("03_skill_spec", results["spec"])
+    # ── Stage 2: B2-B8 in parallel ───────────────────────────────────────────
+    with ThreadPoolExecutor(max_workers=len(_PARALLEL_SKILLS)) as pool:
+        futures = {pool.submit(fn, ctx): name for name, fn in _PARALLEL_SKILLS}
+        for fut in as_completed(futures):
+            name = futures[fut]
+            try:
+                results[name] = fut.result()
+            except Exception as e:
+                logger.exception("skill %s crashed", name)
+                results[name] = {
+                    "bucket":     name.upper(),
+                    "confidence": 0,
+                    "fix":        f"Skill error: {e}",
+                    "error":      str(e),
+                }
 
-    results["intent"] = run_skill_intent(ctx)
-    writer.save("04_skill_intent", results["intent"])
-
-    results["seller"] = run_skill_seller(ctx)
-    writer.save("05_skill_seller", results["seller"])
-
-    results["spec_quality"] = run_skill_spec_quality(ctx)
+    # Persist each skill result with stable numbering for the UI
+    writer.save("02_skill_content",      results["content"])
+    writer.save("03_skill_spec",         results["spec"])
+    writer.save("04_skill_intent",       results["intent"])
+    writer.save("05_skill_seller",       results["seller"])
     writer.save("06_skill_spec_quality", results["spec_quality"])
+    writer.save("07_skill_quantity",     results["quantity"])
+    writer.save("08_skill_retail",       results["retail"])
 
-    results["quantity"] = run_skill_quantity(ctx)
-    writer.save("07_skill_quantity", results["quantity"])
-
-    # ── Score all buckets ─────────────────────────────────────────────────────
+    # ── Score all buckets ────────────────────────────────────────────────────
     bucket_scores = {
         "MCAT_MISMATCH":       results["mcat"]["confidence"],
         "THIN_CONTENT":        results["content"]["confidence"],
@@ -85,22 +123,19 @@ def run_rca(ctx: dict) -> dict:
         "SELLER_SIDE_FAILURE": results["seller"]["confidence"],
         "SPEC_VALUE_QUALITY":  results["spec_quality"]["confidence"],
         "QUANTITY_MISMATCH":   results["quantity"]["confidence"],
+        "RETAIL_QUERY":        results["retail"]["confidence"],
     }
 
     ranked = sorted(bucket_scores.items(), key=lambda x: x[1], reverse=True)
-
-    # Primary = highest scoring bucket
     primary_bucket, primary_confidence = ranked[0]
     primary_fix = results[SKILL_KEY_MAP[primary_bucket]].get("fix", "")
 
-    # Secondary = second highest IF above threshold
     secondary_bucket = ranked[1][0] if ranked[1][1] > ACTIVE_THRESHOLD else None
     secondary_confidence = ranked[1][1] if secondary_bucket else 0
     secondary_fix = (
         results[SKILL_KEY_MAP[secondary_bucket]].get("fix", "") if secondary_bucket else None
     )
 
-    # ── Overlap: ALL buckets above threshold ──────────────────────────────────
     active_buckets = [
         {
             "bucket":     b,
@@ -108,8 +143,7 @@ def run_rca(ctx: dict) -> dict:
             "confidence": score,
             "fix":        results[SKILL_KEY_MAP[b]].get("fix", ""),
         }
-        for b, score in ranked
-        if score > ACTIVE_THRESHOLD
+        for b, score in ranked if score > ACTIVE_THRESHOLD
     ]
     overlap_count = len(active_buckets)
 
@@ -121,40 +155,34 @@ def run_rca(ctx: dict) -> dict:
         labels = ", ".join(ab["label"] for ab in active_buckets)
         overlap_summary = f"{overlap_count} overlapping issues detected: {labels}"
 
-    # ── All bucket fixes ──────────────────────────────────────────────────────
     all_bucket_fixes = {
-        b: results[SKILL_KEY_MAP[b]].get("fix", "")
-        for b in BUCKET_ORDER
+        b: results[SKILL_KEY_MAP[b]].get("fix", "") for b in BUCKET_ORDER
     }
 
     final = {
         "offer_id":    ctx["offer_id"],
         "offer_name":  ctx["offer_name"],
         "mapped_mcat": ctx["mapped_mcat_name"],
-        # Primary (always present)
         "primary_bucket":     primary_bucket,
         "primary_confidence": primary_confidence,
         "primary_fix":        primary_fix,
-        # Secondary (only if above threshold)
         "secondary_bucket":     secondary_bucket,
         "secondary_confidence": secondary_confidence,
         "secondary_fix":        secondary_fix,
-        # Full overlap data
         "overlap_count":   overlap_count,
         "overlap_summary": overlap_summary,
         "active_buckets":  active_buckets,
         "all_bucket_fixes": all_bucket_fixes,
-        # Raw scores for all buckets
-        "bucket_scores": bucket_scores,
-        # All skill details
+        "bucket_scores":   bucket_scores,
         "all_skill_results": results,
         "output_dir": str(writer.dir),
         "run_id":     writer.run_id,
+        "elapsed_secs": round(time.time() - t_start, 2),
     }
 
-    writer.save("08_final_rca", {k: v for k, v in final.items() if k != "all_skill_results"})
-    writer.save_text("09_bl_card", generate_bl_card(final))
-    writer.save("10_manifest", writer.manifest())
+    writer.save("09_final_rca", {k: v for k, v in final.items() if k != "all_skill_results"})
+    writer.save_text("10_bl_card", generate_bl_card(final))
+    writer.save("11_manifest", writer.manifest())
 
     flush()
     return final

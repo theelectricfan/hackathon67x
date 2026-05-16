@@ -261,8 +261,16 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 <div id="hero">
   <h2>BuyLead RCA Report</h2>
-  <p>Click <strong>Load Demo BL</strong> to run a full Root Cause Analysis — 7 failure buckets, overlap detection, Venn diagram, and per-seller diagnosis.</p>
-  <button class="btn btn-green" onclick="loadReport()" style="font-size:1rem;padding:12px 32px;">Load Demo BL</button>
+  <p>Enter a BuyLead (offer) ID and run a full Root Cause Analysis — 8 failure buckets, overlap detection, Venn diagram, and per-seller diagnosis. All data is fetched live from Redash.</p>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;justify-content:center">
+    <input id="offerInput" type="text" inputmode="numeric" placeholder="e.g. 144220567946" value="144220567946"
+           style="background:var(--surface);border:1px solid var(--border);color:var(--text);
+                  padding:11px 14px;border-radius:8px;font-size:1rem;min-width:240px;outline:none;font-family:monospace"
+           onkeydown="if(event.key==='Enter')runByOffer()"/>
+    <button class="btn btn-green" onclick="runByOffer()" id="runBtn" style="font-size:1rem;padding:12px 28px">Run RCA</button>
+    <a class="btn btn-outline" href="/rca-view" style="font-size:.82rem;padding:11px 18px;text-decoration:none">Focused RCA view →</a>
+    <button class="btn btn-outline" onclick="loadReport()" style="font-size:.82rem;padding:11px 18px">Load Demo (CSV)</button>
+  </div>
 </div>
 
 <div id="loadingHero" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;text-align:center;">
@@ -285,6 +293,7 @@ const BC = {
   SELLER_SIDE_FAILURE: {fill:'#f05b5b', bg:'rgba(240,91,91,.08)',   border:'#f05b5b',  label:'Seller Side Failure', id:'B5'},
   SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', bg:'rgba(91,240,212,.08)',  border:'#5bf0d4',  label:'Spec Value Quality',  id:'B6'},
   QUANTITY_MISMATCH:   {fill:'#f05bd4', bg:'rgba(240,91,212,.08)',  border:'#f05bd4',  label:'Quantity Mismatch',   id:'B7'},
+  RETAIL_QUERY:        {fill:'#a0a8c6', bg:'rgba(160,168,198,.08)', border:'#a0a8c6',  label:'Retail Query',        id:'B8'},
 };
 
 async function checkHealth() {
@@ -297,18 +306,21 @@ function dot(c){document.getElementById('apiDot').className='dot '+c;}
 function txt(t){document.getElementById('apiTxt').textContent=t;}
 checkHealth();
 
-async function loadReport() {
+async function _runReport(url, label) {
   document.getElementById('hero').style.display='none';
   document.getElementById('loadingHero').style.display='flex';
   document.getElementById('report').style.display='none';
-  document.getElementById('demoBtn').disabled=true;
+  if(document.getElementById('demoBtn')) document.getElementById('demoBtn').disabled=true;
+  if(document.getElementById('runBtn'))  document.getElementById('runBtn').disabled=true;
 
-  const steps=['Building BL context...','B1: MCAT check...','B2: Content analysis (Parallel AI)...','B3: Spec contradiction check...','B4: Buyer intent (Flash Lite)...','B5: Seller pool analysis...','B6: Spec value quality...','B7: Quantity mismatch...','Synthesising overlap...'];
+  const steps=[`Fetching ${label} from Redash...`,'B1: MCAT check...','B2: Content analysis (Parallel AI)...',
+               'B3: Spec contradiction check...','B4: Buyer intent (Flash Lite)...','B5: Seller pool analysis...',
+               'B6: Spec value quality...','B7: Quantity mismatch...','B8: Retail-query check...','Synthesising overlap...'];
   let si=0;
   const stepEl=document.getElementById('loadStep');
   const t=setInterval(()=>{stepEl.textContent=steps[si++%steps.length];},1600);
   try {
-    const res=await fetch(`${API}/report/demo`);
+    const res=await fetch(url);
     clearInterval(t);
     if(!res.ok){const e=await res.json();throw new Error(e.detail||'Error');}
     const data=await res.json();
@@ -323,8 +335,17 @@ async function loadReport() {
     document.getElementById('hero').style.display='flex';
     showToast('Error: '+e.message,true);
   } finally {
-    document.getElementById('demoBtn').disabled=false;
+    if(document.getElementById('demoBtn')) document.getElementById('demoBtn').disabled=false;
+    if(document.getElementById('runBtn'))  document.getElementById('runBtn').disabled=false;
   }
+}
+
+function loadReport() { return _runReport(`${API}/report/demo`, 'demo BL'); }
+
+function runByOffer() {
+  const v = (document.getElementById('offerInput').value || '').trim();
+  if(!/^\d+$/.test(v)) { showToast('Enter a numeric BuyLead ID', true); return; }
+  return _runReport(`${API}/report/by-offer/${v}`, `offer ${v}`);
 }
 
 function renderReport(data) {
@@ -650,7 +671,7 @@ function renderSection4(rca,skills) {
   for(let i=0;i<active.length;i++) {
     const ab=active[i];
     const c=BC[ab.bucket]||{};
-    const skillKey=Object.entries({mcat:'MCAT_MISMATCH',content:'THIN_CONTENT',spec:'SPEC_CONTRADICTION',intent:'LOW_BUYER_INTENT',seller:'SELLER_SIDE_FAILURE',spec_quality:'SPEC_VALUE_QUALITY',quantity:'QUANTITY_MISMATCH'}).find(([k,v])=>v===ab.bucket)?.[0];
+    const skillKey=Object.entries({mcat:'MCAT_MISMATCH',content:'THIN_CONTENT',spec:'SPEC_CONTRADICTION',intent:'LOW_BUYER_INTENT',seller:'SELLER_SIDE_FAILURE',spec_quality:'SPEC_VALUE_QUALITY',quantity:'QUANTITY_MISMATCH',retail:'RETAIL_QUERY'}).find(([k,v])=>v===ab.bucket)?.[0];
     const sr=skills[skillKey]||{};
     const uid=`bd_${ab.bucket}`;
 
@@ -677,9 +698,9 @@ function renderSection4(rca,skills) {
   }
   html+=`</div>`;
 
-  // All 7 score bars
+  // All 8 score bars
   html+=`<div class="score-bars">
-    <div class="score-title">All 7 Bucket Scores — threshold ${ACTIVE_THRESHOLD}% = active issue</div>`;
+    <div class="score-title">All 8 Bucket Scores — threshold ${ACTIVE_THRESHOLD}% = active issue</div>`;
   for(const [b,score] of Object.entries(scores).sort((a,z)=>z[1]-a[1])) {
     const c=BC[b]||{fill:'#666',label:b,id:'?'};
     const isAct=score>ACTIVE_THRESHOLD;
@@ -699,7 +720,7 @@ function renderSection4(rca,skills) {
   const skillEntries=[
     ['mcat','MCAT_MISMATCH'],['content','THIN_CONTENT'],['spec','SPEC_CONTRADICTION'],
     ['intent','LOW_BUYER_INTENT'],['seller','SELLER_SIDE_FAILURE'],
-    ['spec_quality','SPEC_VALUE_QUALITY'],['quantity','QUANTITY_MISMATCH']
+    ['spec_quality','SPEC_VALUE_QUALITY'],['quantity','QUANTITY_MISMATCH'],['retail','RETAIL_QUERY']
   ];
   for(const [k,b] of skillEntries) {
     const c=BC[b]||{};
@@ -735,6 +756,7 @@ function renderBucketDetail(bucket,sr,c) {
     case 'SELLER_SIDE_FAILURE': return detailSeller(sr,c);
     case 'SPEC_VALUE_QUALITY': return detailSpecQuality(sr,c);
     case 'QUANTITY_MISMATCH': return detailQuantity(sr,c);
+    case 'RETAIL_QUERY': return detailRetail(sr,c);
     default: return `<div class="reasoning-box">${sr.reasoning||sr.fix||'No details'}</div>`;
   }
 }
@@ -845,7 +867,19 @@ function detailQuantity(sr,c) {
   return html;
 }
 
-// ── Radar Chart (all 7 bucket scores) ─────────────────────
+function detailRetail(sr,c) {
+  const isRetail=sr.is_retail_query;
+  let html=`<div class="detail-grid">
+    <div class="dg-cell"><div class="dg-val" style="color:${isRetail?'var(--red)':'var(--green)'}">${isRetail?'RETAIL':'B2B'}</div><div class="dg-lbl">Verdict</div></div>
+    <div class="dg-cell"><div class="dg-val">${sr.enq_typ_label||'—'}</div><div class="dg-lbl">Enq Type (DB)</div>${sr.retail_flag!=null?`<div class="dg-sub">code ${sr.retail_flag}</div>`:''}</div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.rule_req_type_retail?'var(--red)':'var(--green)'}">${sr.rule_req_type_retail?'PERSONAL USE':'BUSINESS'}</div><div class="dg-lbl">Req Type Rule</div></div>
+    <div class="dg-cell"><div class="dg-val" style="color:${sr.rule_unverified_personal?'var(--orange)':'var(--green)'}">${sr.rule_unverified_personal?'YES':'NO'}</div><div class="dg-lbl">Unverified + 1st time</div></div>
+  </div>`;
+  if(sr.reasoning) html+=`<div class="reasoning-box">${sr.reasoning}</div>`;
+  return html;
+}
+
+// ── Radar Chart (all bucket scores) ─────────────────────
 function renderRadar(scores) {
   const keys=Object.keys(BC);
   const N=keys.length;

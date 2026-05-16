@@ -51,6 +51,10 @@ def run_skill_intent(ctx: dict) -> dict:
     sell_mcats           = str(buyer.get("eto_ofr_buyer_sell_mcats") or "").strip()
     prime_mcats          = str(buyer.get("eto_ofr_buyer_prime_mcats") or "").strip()
 
+    was_purchased        = ctx.get("was_purchased", False)
+    has_business_buyer   = ctx.get("has_business_buyer", False)
+    purchasers           = ctx.get("purchasing_sellers") or []
+
     channel_raw        = str(ctx.get("mod_id", "")).strip().upper()
     channel_label      = _CHANNEL_LABELS.get(channel_raw, channel_raw or "Unknown")
 
@@ -76,7 +80,9 @@ BUYLEAD: "{offer_name}" (Category: {mcat_name})
 - Email verified:  {email_verified}
 
 ── BEHAVIORAL SIGNALS ──
-- Lead history:       {lead_history}
+- Lead history:       {lead_history}   ← this is the buyer's lifetime POST count.
+                                          We do NOT know how many of those leads were sold/purchased.
+                                          DO NOT invent claims like "X leads with zero purchases".
 - First-time buyer:   {is_first_time}
 - Past search MCAT:   {past_search}
 - Channel:            {channel_label}
@@ -85,9 +91,16 @@ BUYLEAD: "{offer_name}" (Category: {mcat_name})
 - Buying category in buyer's PRIME MCats: {buyer_in_prime_mcat}    ← TRUE = strong genuine signal (the buyer's stated line of business)
 - Buying category in buyer's PAST SEARCH: {buyer_in_past_search}   ← TRUE = prior research = real demand
 
+── PURCHASE OUTCOME (hardest evidence available) ──
+- BL was actually purchased:         {was_purchased}    ← TRUE = a real seller paid money for this lead — buyer was almost certainly genuine
+- Purchased by a paid B2B seller:    {has_business_buyer}    ← TRUE (CATALOG / TSCATALOG / etc.) = professional seller validated the lead
+- Purchasing-seller details:         {[(s.get('company'), s.get('custtype_name')) for s in purchasers] or 'none recorded'}
+
 Calibration: anchor `confidence` (= how sure this is LOW intent) as follows:
-- 3/3 verified + buyer_in_prime_mcat + not sells_competing               →  confidence  5-20  (clearly genuine)
-- 2-3/3 verified + buyer_in_prime_mcat, but first-time + no past search   →  confidence 20-40  (probably genuine)
+- BL was purchased by a B2B seller                                        →  confidence  0-10  (game over — it was genuine)
+- BL was purchased but no buyer details                                   →  confidence 10-25
+- 3/3 verified + buyer_in_prime_mcat + not sells_competing                →  confidence  5-20  (clearly genuine)
+- 2-3/3 verified + buyer_in_prime_mcat, but first-time + no past search    →  confidence 20-40  (probably genuine)
 - Unverified or competing-seller, mixed signals                           →  confidence 50-70
 - Multiple red flags (no verification, sells competing, no profile, fake) →  confidence 80-100
 

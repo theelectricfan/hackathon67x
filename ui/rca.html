@@ -5,12 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>RCA Analysis — IndiaMART BuyLead</title>
 <style>
-:root {
+:root, body[data-theme="dark"] {
   --bg:#0a0c14; --surface:#13151f; --surface2:#1a1d2e; --surface3:#1f2235;
-  --border:#252840; --text:#e8ebf7; --muted:#7d83a8; --muted2:#4d5275;
-  --accent:#6c7cf2;
-  --green:#5bf09c; --red:#f05b5b; --orange:#f09c5b; --yellow:#f0d45b;
-  --purple:#b05bf0; --blue:#5b9cf0; --teal:#5bf0d4; --pink:#f05bd4; --grey:#a0a8c6;
+  --border:#2d314c; --text:#e8ebf7; --muted:#8a8fb0; --muted2:#6a6f8d;
+  --accent:#7282f8;
+  --green:#5bf09c; --red:#ff7575; --orange:#ffae6b; --yellow:#ffd97a;
+  --purple:#c378ff; --blue:#76aef5; --teal:#6df0d8; --pink:#ff79d4; --grey:#a8aec8;
+}
+body[data-theme="light"] {
+  --bg:#f4f6fb; --surface:#ffffff; --surface2:#eaedf5; --surface3:#dde1ec;
+  --border:#c9cee0; --text:#0f1424; --muted:#454963; --muted2:#6d7290;
+  --accent:#2b39c8;
+  --green:#177846; --red:#b9342b; --orange:#a8631d; --yellow:#8a6500;
+  --purple:#5e2bb2; --blue:#1f5cc4; --teal:#0f7f72; --pink:#a3217e; --grey:#454963;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
@@ -165,6 +172,120 @@ header{padding:16px 32px;display:flex;align-items:center;justify-content:space-b
 .footer-bar strong{color:var(--text);}
 .footer-bar .pulled-from{color:var(--green);font-weight:700;}
 
+/* Tabs */
+.tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:22px;}
+.tab{background:transparent;border:none;color:var(--muted);padding:11px 18px;font-size:.88rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:inherit;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);}
+.tab .tab-i{width:20px;height:20px;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.65rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+.tab.active .tab-i{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tab-badge{font-size:.6rem;padding:1px 7px;border-radius:8px;background:rgba(240,91,91,.15);color:var(--red);font-weight:700;}
+.tab-badge.muted{background:var(--surface2);color:var(--muted);}
+
+/* Purchase banner */
+.purchase-banner{padding:12px 18px;border-radius:11px;font-size:.86rem;line-height:1.55;margin-bottom:20px;border:1px solid;}
+.purchase-banner strong{margin-right:6px;letter-spacing:.02em;}
+.purchase-banner.ok{background:rgba(91,240,156,.07);border-color:rgba(91,240,156,.22);color:var(--green);}
+.purchase-banner.warn{background:rgba(240,212,91,.06);border-color:rgba(240,212,91,.22);color:var(--yellow);}
+.purchase-banner.unknown{background:var(--surface2);border-color:var(--border);color:var(--muted);}
+.pb-buyer{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.22);border:1px solid rgba(91,240,156,.18);border-radius:8px;padding:5px 11px;font-size:.78rem;color:var(--text);}
+.pb-buyer strong{color:var(--green);font-weight:700;}
+.pb-tag{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.pb-date{font-size:.7rem;color:var(--muted);}
+
+/* Overview tab */
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.overview-grid .spec-card-wrap{grid-column:1/-1;}
+.ov-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:18px 20px;}
+.ov-title{font-size:.64rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;margin-bottom:14px;}
+.ov-rows{display:flex;flex-direction:column;gap:9px;}
+.ov-row{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:baseline;}
+.ov-row .ov-k{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.ov-row .ov-v{font-size:.85rem;color:var(--text);font-weight:500;}
+.ov-tag{display:inline-block;font-size:.65rem;padding:2px 7px;border-radius:6px;background:var(--surface2);color:var(--muted);margin-right:4px;border:1px solid var(--border);}
+.ov-tag.match{background:rgba(91,240,156,.1);color:var(--green);border-color:rgba(91,240,156,.3);font-weight:600;}
+.ov-tag.dim{opacity:.55;}
+.ov-specs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
+.ov-spec{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:9px 11px;}
+.ov-spec.filled{border-color:rgba(91,240,156,.25);background:rgba(91,240,156,.04);}
+.ov-spec-name{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px;}
+.ov-spec-val{font-size:.78rem;color:var(--text);font-weight:500;}
+@media(max-width:740px){.overview-grid{grid-template-columns:1fr;}.ov-row{grid-template-columns:96px 1fr;}}
+
+/* Astbuy tab */
+.astbuy-info{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px 18px;margin-bottom:18px;font-size:.82rem;color:var(--muted);line-height:1.6;}
+.astbuy-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.ov-stat{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+.ov-stat-v{font-size:1.5rem;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;}
+.ov-stat-v.ok{color:var(--green);} .ov-stat-v.bad{color:var(--red);} .ov-stat-v.warn{color:var(--yellow);}
+.ov-stat-l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
+.astbuy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.astbuy-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+.ab-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;}
+.ab-rank{font-size:.7rem;font-weight:800;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:3px 8px;}
+.ab-comp{font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ab-sub{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.ab-alert{font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.04em;}
+.ab-A{background:rgba(91,240,156,.12);color:var(--green);} .ab-B{background:rgba(240,212,91,.1);color:var(--yellow);} .ab-C{background:rgba(240,91,91,.1);color:var(--red);}
+.ab-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;padding-top:10px;border-top:1px solid var(--border);}
+.ab-mv{font-size:.92rem;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.ab-mv.ok{color:var(--green);} .ab-mv.bad{color:var(--red);} .ab-mv.warn{color:var(--yellow);}
+.ab-ml{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.ab-cities{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.ab-chip{font-size:.6rem;padding:2px 7px;border-radius:6px;background:var(--surface2);color:var(--muted);}
+.ab-chip.match{background:rgba(108,124,242,.15);color:var(--accent);font-weight:700;}
+.astbuy-empty{background:var(--surface2);border:1px dashed var(--border);border-radius:11px;padding:24px;text-align:center;color:var(--muted);font-size:.84rem;}
+
+/* Purchasers card */
+.purchaser-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.purchaser-card{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:9px;padding:12px 14px;}
+.pc-name{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+.pc-tag{display:inline-block;font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:5px;background:var(--surface2);color:var(--muted);margin-left:8px;letter-spacing:.04em;}
+.pc-row{display:flex;gap:6px;font-size:.7rem;color:var(--muted);margin-top:5px;flex-wrap:wrap;align-items:center;}
+.pc-row .k{color:var(--muted2);}
+.pc-row .v{color:var(--text);font-weight:600;}
+.pc-row .v.alert-A{color:var(--green);}
+.pc-row .v.alert-B{color:var(--yellow);}
+.pc-row .v.alert-C{color:var(--red);}
+.pc-cities{font-size:.62rem;margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;}
+.pc-cities .chip{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--muted);}
+.pc-cities .chip.match{background:rgba(108,124,242,.12);border-color:var(--accent);color:var(--accent);font-weight:700;}
+
+/* Actionable tab */
+.actionable-wrap{display:flex;flex-direction:column;gap:14px;}
+.act-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px 26px;}
+.act-headline{background:linear-gradient(135deg,rgba(108,124,242,.07),rgba(176,91,240,.04));border-color:rgba(108,124,242,.25);}
+.act-eyebrow{font-size:.62rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:8px;font-weight:700;}
+.act-h{font-size:1.55rem;font-weight:800;letter-spacing:-.018em;line-height:1.32;color:var(--text);}
+.act-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.act-pill{font-size:.66rem;font-weight:700;padding:4px 10px;border-radius:9px;letter-spacing:.04em;border:1px solid transparent;}
+.act-pill.ok{background:rgba(91,240,156,.1);color:var(--green);border-color:rgba(91,240,156,.25);}
+.act-pill.warn{background:rgba(240,212,91,.1);color:var(--yellow);border-color:rgba(240,212,91,.25);}
+.act-pill.conf{background:rgba(108,124,242,.1);color:var(--accent);border-color:rgba(108,124,242,.25);}
+.act-pill.sev0{background:rgba(91,240,156,.08);color:var(--green);}
+.act-pill.sev1{background:rgba(240,212,91,.1);color:var(--yellow);}
+.act-pill.sev2{background:rgba(240,156,91,.1);color:var(--orange);}
+.act-pill.sev3{background:rgba(240,91,91,.1);color:var(--red);}
+.act-section-title{font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700;margin-bottom:12px;}
+.act-detail{font-size:.92rem;line-height:1.7;color:var(--text);}
+.act-detail.muted{color:var(--muted);font-size:.83rem;}
+.act-detail p{margin:0 0 10px;}.act-detail p:last-child{margin-bottom:0;}
+.act-items{display:flex;flex-direction:column;gap:10px;}
+.act-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+.act-item-rank{width:30px;height:30px;border-radius:50%;background:rgba(108,124,242,.15);color:var(--accent);font-weight:800;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(108,124,242,.3);}
+.act-item-body{flex:1;min-width:0;}
+.act-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;flex-wrap:wrap;}
+.act-item-label{font-size:.95rem;font-weight:700;color:var(--text);}
+.act-item-impact{font-size:.6rem;padding:2px 8px;border-radius:6px;letter-spacing:.04em;font-weight:700;text-transform:uppercase;}
+.act-item-impact.high{background:rgba(240,91,91,.1);color:var(--red);}
+.act-item-impact.med{background:rgba(240,156,91,.1);color:var(--orange);}
+.act-item-impact.low{background:rgba(91,240,156,.08);color:var(--green);}
+.act-item-detail{font-size:.83rem;color:var(--muted);line-height:1.6;}
+.act-caveat{border-color:rgba(240,212,91,.18);background:rgba(240,212,91,.04);}
+.act-empty{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:32px;text-align:center;}
+.act-empty-title{font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:6px;}
+.act-empty-body{font-size:.78rem;color:var(--muted);}
+
 /* Toast */
 .toast{position:fixed;bottom:24px;right:24px;background:#1e2030;border:1px solid var(--border);color:var(--text);
   padding:11px 20px;border-radius:10px;font-size:.82rem;opacity:0;transform:translateY(8px);
@@ -186,6 +307,12 @@ header{padding:16px 32px;display:flex;align-items:center;justify-content:space-b
   <div class="status">
     <span class="dot" id="apiDot"></span>
     <span id="apiTxt">checking…</span>
+    <button id="themeBtn" onclick="toggleTheme()" title="Toggle dark / light mode"
+      style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+             padding:6px 11px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;
+             font-family:inherit;display:inline-flex;align-items:center;gap:6px;margin-left:6px;">
+      <span id="themeIcon">🌙</span><span id="themeLbl">Dark</span>
+    </button>
   </div>
 </header>
 
@@ -213,30 +340,44 @@ const BC = {
   THIN_CONTENT:        {fill:'#f09c5b', label:'Thin Content',        id:'B2'},
   SPEC_CONTRADICTION:  {fill:'#b05bf0', label:'Spec Contradiction',  id:'B3'},
   LOW_BUYER_INTENT:    {fill:'#f0d45b', label:'Low Buyer Intent',    id:'B4'},
-  SELLER_SIDE_FAILURE: {fill:'#f05b5b', label:'Seller Side Failure', id:'B5'},
-  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', label:'Spec Value Quality',  id:'B6'},
-  QUANTITY_MISMATCH:   {fill:'#f05bd4', label:'Quantity Mismatch',   id:'B7'},
-  RETAIL_QUERY:        {fill:'#a0a8c6', label:'Retail Query',        id:'B8'},
+  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', label:'Spec Value Quality',  id:'B5'},
+  QUANTITY_MISMATCH:   {fill:'#f05bd4', label:'Quantity Mismatch',   id:'B6'},
+  RETAIL_QUERY:        {fill:'#a0a8c6', label:'Retail Query',        id:'B7'},
 };
 
 const SKILL_KEY = {
   MCAT_MISMATCH:'mcat',          THIN_CONTENT:'content',
   SPEC_CONTRADICTION:'spec',     LOW_BUYER_INTENT:'intent',
-  SELLER_SIDE_FAILURE:'seller',  SPEC_VALUE_QUALITY:'spec_quality',
+  SPEC_VALUE_QUALITY:'spec_quality',
   QUANTITY_MISMATCH:'quantity',  RETAIL_QUERY:'retail',
 };
 
 const STEPS = [
   'Fetching BL data from Redash',
+  'Checking purchased status',
   'Loading buyer profile',
-  'Mapping seller pool',
+  'Loading astbuy seller pool',
   'Loading MCAT spec catalog',
   'Loading 90-day sold-BL benchmark',
-  'Enriching seller details',
   'B1: MCAT mismatch check',
-  'B2-B8: bucket analysis (parallel)',
+  'B2-B7: bucket analysis (parallel)',
   'Synthesising verdict',
 ];
+
+function applyTheme(t) {
+  document.body.setAttribute('data-theme', t);
+  const isLight = t === 'light';
+  const icon = document.getElementById('themeIcon');
+  const lbl = document.getElementById('themeLbl');
+  if (icon) icon.textContent = isLight ? '☀' : '🌙';
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+}
+function toggleTheme() {
+  const next = (document.body.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+  localStorage.setItem('blrca_theme', next);
+  applyTheme(next);
+}
+applyTheme(localStorage.getItem('blrca_theme') || 'dark');
 
 async function checkHealth() {
   try {
@@ -290,16 +431,268 @@ async function runByOffer() {
 }
 
 function render(data) {
-  const {report, rca, skill_results, data_sources, timings} = data;
+  const {report, rca, skill_results, actionable, data_sources, timings} = data;
   const bl = report.bl;
+  const astbuy = report.astbuy_sellers || report.sellers || [];
   document.getElementById('report').innerHTML = `
     ${renderStrip(bl, data_sources, rca)}
-    ${renderVerdict(rca)}
-    ${rca.primary_bucket ? renderPrimaryFix(rca) : ''}
-    <div class="section-title">All 8 buckets · click any to expand</div>
-    ${renderBuckets(rca, skill_results)}
+    ${renderPurchaseBanner(bl)}
+    ${renderTabBar(astbuy.length, rca.overlap_count||0)}
+    <div class="tab-panel" data-tab="actionable">
+      ${renderActionable(actionable, rca, bl)}
+    </div>
+    <div class="tab-panel" data-tab="overview" style="display:none">
+      ${renderOverview(report, skill_results)}
+    </div>
+    <div class="tab-panel" data-tab="diagnosis" style="display:none">
+      ${renderVerdict(rca)}
+      ${rca.primary_bucket ? renderPrimaryFix(rca) : ''}
+      <div class="section-title">All 7 buckets · click any to expand</div>
+      ${renderBuckets(rca, skill_results)}
+    </div>
+    <div class="tab-panel" data-tab="astbuy" style="display:none">
+      ${renderAstbuy(astbuy, report.pool_signals, report.buyer.city)}
+    </div>
     ${renderFooter(rca, timings)}
   `;
+}
+
+function renderTabBar(astbuyCount, overlap) {
+  return `<div class="tab-bar">
+    <button class="tab active" onclick="switchTab(this,'actionable')">
+      <span class="tab-i">★</span><span>Actionable</span>
+    </button>
+    <button class="tab" onclick="switchTab(this,'overview')">
+      <span class="tab-i">1</span><span>General Info</span>
+    </button>
+    <button class="tab" onclick="switchTab(this,'diagnosis')">
+      <span class="tab-i">2</span><span>Bucket Diagnosis</span>
+      ${overlap>0?`<span class="tab-badge">${overlap}</span>`:''}
+    </button>
+    <button class="tab" onclick="switchTab(this,'astbuy')">
+      <span class="tab-i">3</span><span>Astbuy Sellers</span>
+      ${astbuyCount>0?`<span class="tab-badge muted">${astbuyCount}</span>`:''}
+    </button>
+  </div>`;
+}
+
+function renderActionable(a, rca, bl) {
+  if (!a || a.error) {
+    return `<div class="act-empty">
+      <div class="act-empty-title">Final actionable couldn't be generated</div>
+      <div class="act-empty-body">${a?.error ? escapeHtml(a.error) : 'The synthesis LLM call failed. See Bucket Diagnosis tab for raw bucket verdicts.'}</div>
+    </div>`;
+  }
+  const headline = a.root_cause_headline || rca.overlap_summary || 'No headline produced.';
+  const detail = a.root_cause_detail || '';
+  const items = a.action_items || [];
+  const conf = a.confidence;
+  const caveats = a.caveats || '';
+  const purchasedBadge = bl.was_purchased
+    ? `<span class="act-pill ok">BL was purchased</span>`
+    : `<span class="act-pill warn">BL not purchased</span>`;
+
+  return `<div class="actionable-wrap">
+    <div class="act-card act-headline">
+      <div class="act-eyebrow">Root cause · synthesised by LLM from every signal</div>
+      <h2 class="act-h">${escapeHtml(headline)}</h2>
+      <div class="act-meta">
+        ${purchasedBadge}
+        ${conf!=null?`<span class="act-pill conf">Confidence ${conf}%</span>`:''}
+        <span class="act-pill ${(rca.overlap_count||0)>=3?'sev3':(rca.overlap_count||0)>=2?'sev2':(rca.overlap_count||0)>=1?'sev1':'sev0'}">${rca.overlap_count||0} active bucket${rca.overlap_count===1?'':'s'}</span>
+      </div>
+    </div>
+
+    ${detail ? `<div class="act-card">
+      <div class="act-section-title">Why this happened</div>
+      <div class="act-detail">${escapeHtml(detail).split(/\\n\\n+/).map(p=>`<p>${p}</p>`).join('')}</div>
+    </div>` : ''}
+
+    ${items.length ? `<div class="act-card">
+      <div class="act-section-title">Action items · ordered by impact</div>
+      <div class="act-items">${items.map(it=>renderActionItem(it)).join('')}</div>
+    </div>` : ''}
+
+    ${caveats ? `<div class="act-card act-caveat">
+      <div class="act-section-title">Caveats</div>
+      <div class="act-detail muted">${escapeHtml(caveats)}</div>
+    </div>` : ''}
+  </div>`;
+}
+
+function renderActionItem(it) {
+  const impact = (it.impact||'Medium').toLowerCase();
+  const impCls = impact.startsWith('high')?'high':impact.startsWith('low')?'low':'med';
+  return `<div class="act-item">
+    <div class="act-item-rank">${it.priority||'•'}</div>
+    <div class="act-item-body">
+      <div class="act-item-head">
+        <span class="act-item-label">${escapeHtml(it.label||'Action')}</span>
+        <span class="act-item-impact ${impCls}">${escapeHtml(it.impact||'Medium')} impact</span>
+      </div>
+      <div class="act-item-detail">${escapeHtml(it.detail||'')}</div>
+    </div>
+  </div>`;
+}
+
+function switchTab(btn, name) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.style.display = (p.dataset.tab === name) ? 'block' : 'none';
+  });
+}
+
+function renderPurchaseBanner(bl) {
+  if (!bl) return '';
+  const purchased = bl.was_purchased;
+  const status = bl.purchased_status || 'Unknown';
+  const n = bl.purchase_count || 0;
+  const buyers = bl.purchasing_sellers || [];
+  if (purchased) {
+    const buyerList = buyers.length
+      ? `<div style="margin-top:9px;display:flex;gap:8px;flex-wrap:wrap;">${buyers.map(s => `
+          <span class="pb-buyer">
+            <strong>${escapeHtml(s.company || '—')}</strong>
+            <span class="pb-tag">${escapeHtml(s.custtype_name || '?')}</span>
+            ${s.purchased_at ? `<span class="pb-date">${(s.purchased_at||'').split('T')[0]}</span>` : ''}
+          </span>`).join('')}</div>`
+      : `<div style="margin-top:6px;font-size:.78rem;color:var(--muted)">Buyer details not retained (archived warehouse).</div>`;
+    return `<div class="purchase-banner ok">
+      <strong>Purchased</strong> · this BL was bought by ${n} seller${n===1?'':'s'}. RCA below is post-hoc.
+      ${buyerList}
+    </div>`;
+  }
+  if (status === 'Not Purchased') {
+    return `<div class="purchase-banner warn">
+      <strong>Not Purchased</strong> · no buyer found in eto_lead_pur_hist / iil_lead_pur_hist. RCA applies.
+    </div>`;
+  }
+  return `<div class="purchase-banner unknown"><strong>Status unknown</strong></div>`;
+}
+
+function renderOverview(report, skills) {
+  const bl = report.bl;
+  const b = report.buyer || {};
+  const intent = (skills?.intent) || {};
+  const enqLabel = bl.retail_flag === 1 ? 'Retail' : bl.retail_flag === 2 ? 'B2B' : bl.retail_flag === 3 ? 'Auto-Retail' : '—';
+
+  const specsBox = (bl.specs_form || []).map(s => {
+    const filled = s.is_filled;
+    const star = s.priority <= 2 ? '★'.repeat(3 - s.priority) : '';
+    const isQty = /^quantity( unit)?$/i.test(s.name);
+    let val;
+    if (isQty) {
+      val = filled ? `<span style="font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700">${escapeHtml(s.buyer_value)}</span>` : `<span style="color:var(--muted2);font-style:italic">—</span>`;
+    } else {
+      val = filled ? escapeHtml(s.buyer_value) : `<span style="color:var(--muted2);font-style:italic">not filled</span>`;
+    }
+    return `<div class="ov-spec ${filled?'filled':'empty'}">
+      <div class="ov-spec-name">${star?`<span style="color:var(--yellow)">${star}</span> `:''}${escapeHtml(s.name)}</div>
+      <div class="ov-spec-val">${val}</div>
+    </div>`;
+  }).join('');
+
+  const purchasers = bl.purchasing_sellers || [];
+  const purchasersCard = purchasers.length ? `
+    <div class="ov-card spec-card-wrap" style="border-color:rgba(91,240,156,.25);background:linear-gradient(135deg,rgba(91,240,156,.04),transparent)">
+      <div class="ov-title">Purchased by · ${purchasers.length} seller${purchasers.length===1?'':'s'} — real transaction</div>
+      <div class="purchaser-grid">${purchasers.map(s => {
+        const alertLetter = (s.eto_trd_alert_rank || '').toString().toUpperCase()[0] || '';
+        const cities = (s.a_rank_preferred_cities || '').split(',').map(c=>c.trim()).filter(Boolean).slice(0,6);
+        const bcl = (b.city || '').toString().toLowerCase();
+        const purDate = (s.purchased_at || '').toString().split('T')[0];
+        return `<div class="purchaser-card">
+          <div class="pc-name">${escapeHtml(s.company || '—')}<span class="pc-tag">${escapeHtml(s.custtype_name || '?')}</span></div>
+          <div class="pc-row"><span class="k">Bought</span><span class="v">${purDate || '—'}</span></div>
+          <div class="pc-row"><span class="k">Alert</span><span class="v alert-${alertLetter}">${s.eto_trd_alert_rank || '—'}${s.eto_trd_alert_subrank?` / ${s.eto_trd_alert_subrank}`:''}</span></div>
+          <div class="pc-row"><span class="k">BLs / yr</span><span class="v">${s.total_bl_purchased_1yr ?? 0}</span></div>
+          <div class="pc-row"><span class="k">City match</span><span class="v">${s.city_match?'✓ yes':'✗ no'}</span></div>
+          ${cities.length?`<div class="pc-cities">${cities.map(c=>`<span class="chip ${c.toLowerCase()===bcl?'match':''}">${escapeHtml(c)}</span>`).join('')}</div>`:''}
+        </div>`;
+      }).join('')}</div>
+    </div>` : '';
+
+  return `<div class="overview-grid">
+    ${purchasersCard}
+    <div class="ov-card">
+      <div class="ov-title">BuyLead Header</div>
+      <div class="ov-rows">
+        <div class="ov-row"><span class="ov-k">Title</span><span class="ov-v">${escapeHtml(bl.offer_name)}</span></div>
+        <div class="ov-row"><span class="ov-k">MCAT</span><span class="ov-v">${escapeHtml(bl.mcat_name||'—')} ${bl.mapped_mcat_id?`<span style="color:var(--muted)">· ${bl.mapped_mcat_id}</span>`:''}</span></div>
+        <div class="ov-row"><span class="ov-k">Approved</span><span class="ov-v">${(bl.approval_date||'').split('T')[0]||'—'}</span></div>
+        <div class="ov-row"><span class="ov-k">Enq Type</span><span class="ov-v">${enqLabel}</span></div>
+        <div class="ov-row"><span class="ov-k">AOV</span><span class="ov-v">${escapeHtml(bl.probable_order_value||'—')}</span></div>
+        <div class="ov-row"><span class="ov-k">Req Type</span><span class="ov-v">${escapeHtml(bl.probable_req_type||'—')}</span></div>
+        <div class="ov-row"><span class="ov-k">Specs filled</span><span class="ov-v">${bl.specs_fill_count}/${bl.total_spec_count}</span></div>
+      </div>
+    </div>
+    <div class="ov-card">
+      <div class="ov-title">Buyer Profile</div>
+      <div class="ov-rows">
+        <div class="ov-row"><span class="ov-k">Company</span><span class="ov-v">${escapeHtml(b.company||'—')}</span></div>
+        <div class="ov-row"><span class="ov-k">Contact</span><span class="ov-v">${escapeHtml(b.contact||'—')} ${b.designation && b.designation!=='—' ? `<span style="color:var(--muted)">· ${escapeHtml(b.designation)}</span>` : ''}</span></div>
+        <div class="ov-row"><span class="ov-k">Location</span><span class="ov-v">${escapeHtml(b.city||'—')}, ${escapeHtml(b.state||'—')}</span></div>
+        <div class="ov-row"><span class="ov-k">Verified</span><span class="ov-v">${[b.gst_verified?'GST':null, b.mobile_verified?'Mobile':null, b.email_verified?'Email':null].filter(Boolean).join(' · ') || '<span style="color:var(--red)">none</span>'}</span></div>
+        <div class="ov-row"><span class="ov-k">Total leads</span><span class="ov-v">${b.total_leads ?? '—'}${b.first_time_buyer?' <span style="color:var(--yellow)">· first-time</span>':''}</span></div>
+        <div class="ov-row"><span class="ov-k">Prime MCATs</span><span class="ov-v">${(b.prime_mcats||[]).map(m=>`<span class="ov-tag ${b.buyer_in_prime_mcat && m.toLowerCase()===bl.mcat_name?.toLowerCase()?'match':''}">${escapeHtml(m)}</span>`).join('') || '—'}</span></div>
+        <div class="ov-row"><span class="ov-k">Also sells</span><span class="ov-v">${(b.sell_mcats||[]).map(m=>`<span class="ov-tag dim">${escapeHtml(m)}</span>`).join('') || '—'}</span></div>
+        ${b.buyer_in_prime_mcat ? `<div class="ov-row"><span class="ov-k"></span><span class="ov-v" style="color:var(--green);font-size:.75rem">✓ Buying in own line of business (prime MCAT)</span></div>` : ''}
+      </div>
+    </div>
+    <div class="ov-card spec-card-wrap">
+      <div class="ov-title">Spec Form · ${bl.specs_fill_count}/${bl.total_spec_count} filled</div>
+      <div class="ov-specs">${specsBox || '<div style="color:var(--muted);font-size:.8rem">No catalog specs found for this MCAT.</div>'}</div>
+    </div>
+  </div>`;
+}
+
+function renderAstbuy(sellers, pool, buyerCity) {
+  const total = pool?.total_sellers || sellers?.length || 0;
+  const cityMatch = pool?.city_match_count ?? 0;
+  const withHist = pool?.with_history_count ?? 0;
+  const mcatMatch = pool?.mcat_match_count ?? 0;
+
+  let html = `<div class="astbuy-info">
+    <strong style="color:var(--text)">What this is: </strong>
+    these ${total} sellers were selected by IndiaMART to chase this unsold BL via phone (astbuy routing).
+    They are NOT the original recommended-seller pool — informational only, separate from the RCA verdict.
+  </div>
+  <div class="astbuy-stats">
+    <div class="ov-stat"><div class="ov-stat-v">${total}</div><div class="ov-stat-l">Pool size</div></div>
+    <div class="ov-stat"><div class="ov-stat-v ${mcatMatch>0?'ok':'bad'}">${mcatMatch}/${total}</div><div class="ov-stat-l">MCAT match</div></div>
+    <div class="ov-stat"><div class="ov-stat-v ${cityMatch>0?'ok':'bad'}">${cityMatch}/${total}</div><div class="ov-stat-l">City match</div></div>
+    <div class="ov-stat"><div class="ov-stat-v ${withHist>0?'ok':'bad'}">${withHist}/${total}</div><div class="ov-stat-l">Has BL history</div></div>
+  </div>`;
+
+  if (total === 0) {
+    return html + `<div class="astbuy-empty">No astbuy sellers were routed for this BL (or data was purged for an archived offer).</div>`;
+  }
+
+  const bcl = (buyerCity || '').toLowerCase();
+  html += `<div class="astbuy-grid">`;
+  for (const s of sellers) {
+    const alertLetter = (s.alert_rank || 'C').toUpperCase()[0];
+    html += `<div class="astbuy-card">
+      <div class="ab-head">
+        <span class="ab-rank">#${s.rank||'?'}</span>
+        <div style="flex:1;min-width:0">
+          <div class="ab-comp">${escapeHtml(s.company)}</div>
+          <div class="ab-sub">${escapeHtml(s.membership||'—')} · since ${(s.member_since||'—').toString().split('T')[0]||'—'}</div>
+        </div>
+        <span class="ab-alert ab-${alertLetter}">${s.alert_rank||'?'}${s.alert_subrank||''}</span>
+      </div>
+      <div class="ab-grid">
+        <div><div class="ab-mv ${s.mcat_match?'ok':'bad'}">${s.mcat_match?'YES':'NO'}</div><div class="ab-ml">MCAT</div></div>
+        <div><div class="ab-mv ${s.bl_purchased_1yr>=10?'ok':s.bl_purchased_1yr>0?'warn':'bad'}">${s.bl_purchased_1yr}</div><div class="ab-ml">BL/yr</div></div>
+        <div><div class="ab-mv ${s.distance_km==0?'ok':s.distance_km>200?'bad':'warn'}">${s.distance_km==null?'—':s.distance_km===0?'Local':s.distance_km+'km'}</div><div class="ab-ml">Distance</div></div>
+        <div><div class="ab-mv">${s.quality_score||0}</div><div class="ab-ml">Quality</div></div>
+      </div>
+      ${s.preferred_cities?.length ? `<div class="ab-cities">${s.preferred_cities.map(c=>`<span class="ab-chip ${c.toLowerCase()===bcl?'match':''}">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  html += `</div>`;
+  return html;
 }
 
 function renderStrip(bl, ds, rca) {
@@ -362,7 +755,7 @@ function renderPrimaryFix(rca) {
 }
 
 function renderBuckets(rca, skills) {
-  // Sort: active first (desc by confidence), then inactive (desc)
+  // Show ALL buckets (active first, then inactive — all expandable).
   const entries = Object.entries(rca.bucket_scores || {})
     .map(([b, s])=>({b, s, active: s > ACTIVE_THRESHOLD}))
     .sort((a, z)=> (z.active - a.active) || (z.s - a.s));

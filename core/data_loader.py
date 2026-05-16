@@ -58,17 +58,21 @@ def load_for_offer(offer_id) -> dict[str, Any]:
     oid = _int(offer_id, "offer_id")
     timings: dict[str, float] = {}
 
-    # ── Stage 1 — 3 queries, only need offer_id ──────────────────────────────
+    # ── Stage 1 — 5 queries, only need offer_id ──────────────────────────────
     t0 = time.time()
-    bl_sql      = _sql("bl_data.sql")
-    buyer_sql   = _sql("buyer_data.sql")
-    mapping_sql = _sql("seller_mapping.sql")
+    bl_sql            = _sql("bl_data.sql")
+    buyer_sql         = _sql("buyer_data.sql")
+    mapping_sql       = _sql("seller_mapping.sql")
+    purchased_sql     = _sql("purchased_status.sql")
+    purch_sellers_sql = _sql("purchasing_sellers.sql")
 
-    with ThreadPoolExecutor(max_workers=3) as pool:
+    with ThreadPoolExecutor(max_workers=5) as pool:
         futures = {
-            pool.submit(_run, bl_sql,      settings.REDASH_DS_BL,     offer_id=oid): "bl_data",
-            pool.submit(_run, buyer_sql,   settings.REDASH_DS_BUYER,  offer_id=oid): "buyer_data",
-            pool.submit(_run, mapping_sql, settings.REDASH_DS_SELLER, offer_id=oid): "seller_mapping",
+            pool.submit(_run, bl_sql,            settings.REDASH_DS_BL,       offer_id=oid): "bl_data",
+            pool.submit(_run, buyer_sql,         settings.REDASH_DS_BUYER,    offer_id=oid): "buyer_data",
+            pool.submit(_run, mapping_sql,       settings.REDASH_DS_SELLER,   offer_id=oid): "seller_mapping",
+            pool.submit(_run, purchased_sql,     settings.REDASH_DS_BL,       offer_id=oid): "purchased_status",
+            pool.submit(_run, purch_sellers_sql, settings.REDASH_DS_MCATSPEC, offer_id=oid): "purchasing_sellers",
         }
         stage1: dict[str, list[dict]] = {}
         for fut in as_completed(futures):
@@ -113,11 +117,13 @@ def load_for_offer(offer_id) -> dict[str, Any]:
     timings["total_secs"] = round(time.time() - t0, 2)
 
     return {
-        "bl_data":         stage1["bl_data"],
-        "buyer_data":      stage1["buyer_data"],
-        "seller_mapping":  stage1["seller_mapping"],
-        "mcat_catalog":    stage2.get("mcat_catalog", []),
-        "sold_benchmark":  stage2.get("sold_benchmark", []),
-        "seller_details":  stage2.get("seller_details", []),
-        "timings":         timings,
+        "bl_data":            stage1["bl_data"],
+        "buyer_data":         stage1["buyer_data"],
+        "seller_mapping":     stage1["seller_mapping"],
+        "purchased_status":   stage1["purchased_status"],
+        "purchasing_sellers": stage1["purchasing_sellers"],
+        "mcat_catalog":       stage2.get("mcat_catalog", []),
+        "sold_benchmark":     stage2.get("sold_benchmark", []),
+        "seller_details":     stage2.get("seller_details", []),
+        "timings":            timings,
     }

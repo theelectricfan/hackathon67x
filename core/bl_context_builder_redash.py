@@ -75,21 +75,19 @@ _ALERT_SCORE = {
 
 
 def _seller_quality_score(s: dict) -> int:
-    """Composite 0–100 quality score from alert rank + credits + activity + history."""
+    """Composite 0–100 quality score for an astbuy candidate seller.
+    Credit balance intentionally excluded — credits don't gate astbuy chase calls."""
     score = 0
     rank = (str(s.get("eto_trd_alert_subrank") or s.get("eto_trd_alert_rank") or "")
             .strip().upper())
-    score += _ALERT_SCORE.get(rank, 30) * 0.4   # 40% weight
-
-    credits = _safe_float(s.get("available_credits"))
-    score += (30 if credits and credits > 0 else 0)  # 30% weight
+    score += _ALERT_SCORE.get(rank, 30) * 0.55   # 55% weight
 
     bl_yr = _safe_int(s.get("total_bl_purchased_1yr")) or 0
-    score += min(bl_yr / 50 * 20, 20)               # 20% weight (cap at 50 BLs)
+    score += min(bl_yr / 50 * 30, 30)            # 30% weight (cap at 50 BLs)
 
     dist = _safe_float(s.get("eto_lead_supplier_dist"))
     if dist is not None:
-        score += max(0, 10 * (1 - min(dist, 1000) / 1000))  # 10% weight, decays with distance
+        score += max(0, 15 * (1 - min(dist, 1000) / 1000))  # 15% weight, decays with distance
     return int(round(min(score, 100)))
 
 
@@ -104,6 +102,8 @@ def build_bl_context_from_redash(offer_id) -> dict:
     catalog_rows    = data["mcat_catalog"]
     benchmark_rows  = data["sold_benchmark"]
     seller_details  = data["seller_details"]
+    purchased_rows  = data["purchased_status"]
+    purchaser_rows  = data["purchasing_sellers"]
 
     # ── 1. BL identity + filled specs (pivot bl_rows) ────────────────────────
     base = bl_rows[0]
@@ -223,25 +223,66 @@ def build_bl_context_from_redash(offer_id) -> dict:
     buyer_in_prime_mcat  = _in_csv(mapped_mcat_name, prime_mcats)
     buyer_in_past_search = _str_overlap(mapped_mcat_name, buyer.get("eto_ofr_buyer_past_search_mcat") or "")
 
+    # ── Astbuy-pool aggregates (no credits — irrelevant for astbuy chase) ────
     buyer_city = str(buyer.get("eto_ofr_s_city") or "").lower()
-    sellers_with_credits = sum(
-        1 for s in seller_detailed_pool
-        if s["available_credits"] and str(s["available_credits"]).strip() not in ("", "0", "0.0", "None", "nan")
-    )
-    sellers_city_match = sum(
+    astbuy_city_match = sum(
         1 for s in seller_detailed_pool
         if buyer_city and (
             buyer_city in str(s.get("a_rank_preferred_cities") or "").lower()
             or buyer_city in str(s.get("b_rank_consuming_cities") or "").lower()
         )
     )
-    sellers_with_history = sum(1 for s in seller_detailed_pool if s["total_bl_purchased_1yr"] > 0)
-
-    seller_all_credits_blank = (len(seller_detailed_pool) > 0
-                                and sellers_with_credits == 0)
+    astbuy_with_history = sum(1 for s in seller_detailed_pool if s["total_bl_purchased_1yr"] > 0)
+    astbuy_mcat_match = sum(
+        1 for s in seller_detailed_pool
+        if mapped_mcat_id and s.get("eto_lead_prime_mcat") == mapped_mcat_id
+    )
 
     # Retail flag from eto_enq_typ — 1=Retail, 2=B2B, 3=Auto-Retail
     retail_flag_raw = _safe_int(base.get("retail_flag"))
+
+    # Purchased status (operational ledger — works for live + archived BLs)
+    purchased_row = purchased_rows[0] if purchased_rows else {}
+    purchased_status = purchased_row.get("purchased_status") or "Unknown"
+    purchase_count = _safe_int(purchased_row.get("purchase_count")) or 0
+    was_purchased = purchased_status == "Purchased"
+
+    # Purchasing sellers (warehouse enrichment — only available for non-archived BLs)
+    # Tells us WHO bought, with full profile (alert rank, location prefs, BL history).
+    # This is real data — informational, NOT analysed as a bucket.
+    purchasing_sellers = []
+    for r in purchaser_rows:
+        pref_cities = r.get("a_rank_preferred_cities")
+        consume_cities = r.get("b_rank_consuming_cities")
+        ps = {
+            "supplier_gl_id":    _safe_int(r.get("supplier_gl_id")),
+            "company":           r.get("supplier_company_name"),
+            "custtype_name":     r.get("custtype_name"),
+            "member_since":      r.get("glusr_usr_membersince"),
+            "last_login":        r.get("glusr_usr_lastlogin"),
+            "purchased_at":      r.get("purchased_at"),
+            "eto_trd_alert_rank":    r.get("eto_trd_alert_rank"),
+            "eto_trd_alert_subrank": r.get("eto_trd_alert_subrank"),
+            "loc_pref":              _safe_int(r.get("glusr_usr_deduced_loc_pref1")),
+            "a_rank_preferred_cities": pref_cities,
+            "b_rank_consuming_cities": consume_cities,
+            "total_bl_purchased_1yr":  _safe_int(r.get("total_bl_purchased_1yr")) or 0,
+        }
+        # city_match against the buyer's city, computed here
+        b_city = (buyer.get("eto_ofr_s_city") or "").strip().lower()
+        ps["city_match"] = bool(
+            b_city and (
+                b_city in str(pref_cities or "").lower()
+                or b_city in str(consume_cities or "").lower()
+            )
+        )
+        purchasing_sellers.append(ps)
+    _BIZ_CUSTTYPES = {"CATALOG", "TSCATALOG", "STARSUPPLIER", "LEADINGSUPPLIER",
+                      "MINICATALOG", "VGFCPPLUS WITH PNS(G)", "VGFCPPLUS"}
+    has_business_buyer = any(
+        str(s.get("custtype_name") or "").upper() in _BIZ_CUSTTYPES
+        for s in purchasing_sellers
+    )
 
     # ── 7. Assemble ──────────────────────────────────────────────────────────
     ctx = {
@@ -281,15 +322,22 @@ def build_bl_context_from_redash(offer_id) -> dict:
         "buyer_in_prime_mcat":  buyer_in_prime_mcat,
         "buyer_in_past_search": buyer_in_past_search,
 
-        # Seller pool (single unified list)
-        "seller_pool":              seller_detailed_pool,
-        "seller_detailed_pool":     seller_detailed_pool,
-        "seller_pool_has_credits":  sellers_with_credits > 0,
-        "seller_all_credits_blank": seller_all_credits_blank,
-        "seller_all_fcp_zero":      True,  # fcp not in current query — UI compat
-        "sellers_with_credits":     sellers_with_credits,
-        "sellers_city_match":       sellers_city_match,
-        "sellers_with_history":     sellers_with_history,
+        # Purchased status — was this BL actually purchased?
+        "purchased_status":   purchased_status,
+        "purchase_count":     purchase_count,
+        "was_purchased":      was_purchased,
+        "purchasing_sellers": purchasing_sellers,
+        "has_business_buyer": has_business_buyer,
+
+        # Astbuy seller pool (chase-call candidates, NOT original recommendations)
+        # Kept under the old `seller_pool` / `seller_detailed_pool` keys for
+        # backwards compat with any remaining code paths.
+        "astbuy_pool":          seller_detailed_pool,
+        "seller_pool":          seller_detailed_pool,
+        "seller_detailed_pool": seller_detailed_pool,
+        "astbuy_city_match":    astbuy_city_match,
+        "astbuy_with_history":  astbuy_with_history,
+        "astbuy_mcat_match":    astbuy_mcat_match,
 
         # Loader timing — handy for UI
         "_timings": data["timings"],

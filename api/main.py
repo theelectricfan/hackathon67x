@@ -155,11 +155,21 @@ def rca_demo():
 def _build_report_payload(ctx: dict, result: dict, source: str) -> dict:
     """Turn a (ctx, RCA result) pair into the rich shape the UI expects."""
     # ── 1. Spec form (what buyer filled, shown against catalog options) ──────
+    # Case-insensitive lookup so "QUANTITY" / "Quantity" / "quantity" all match.
+    specs_filled_raw = ctx.get("specs_filled") or {}
+    specs_filled_ci = {k.strip().lower(): (k, v) for k, v in specs_filled_raw.items()}
+    used_buyer_keys = set()
     specs_form = []
     for spec_name, info in sorted(
         ctx["mcat_spec_catalog"].items(), key=lambda x: x[1]["priority"]
     ):
-        buyer_val = ctx["specs_filled"].get(spec_name)
+        ci_key = spec_name.strip().lower()
+        match = specs_filled_ci.get(ci_key)
+        if match:
+            _, buyer_val = match
+            used_buyer_keys.add(ci_key)
+        else:
+            buyer_val = None
         is_filled = buyer_val is not None
         options = info["options"]
         is_free_text = len(options) == 0
@@ -172,6 +182,23 @@ def _build_report_payload(ctx: dict, result: dict, source: str) -> dict:
             "is_filled": is_filled,
             "is_free_text": is_free_text,
             "is_other": is_other,
+            "in_catalog": True,
+        })
+
+    # ── 1b. Buyer-filled specs that are NOT in the catalog — surface them ──
+    # so they're visible in the UI instead of silently dropped.
+    for ci_key, (orig_name, buyer_val) in specs_filled_ci.items():
+        if ci_key in used_buyer_keys:
+            continue
+        specs_form.append({
+            "name": orig_name,
+            "priority": 99,
+            "options": [],
+            "buyer_value": buyer_val,
+            "is_filled": True,
+            "is_free_text": True,
+            "is_other": False,
+            "in_catalog": False,
         })
 
     # ── 2. Buyer profile ──────────────────────────────────────────────────────
@@ -201,59 +228,52 @@ def _build_report_payload(ctx: dict, result: dict, source: str) -> dict:
         "intent_reasoning": result["all_skill_results"]["intent"].get("reasoning", ""),
     }
 
-    # ── 3. Seller cards ───────────────────────────────────────────────────────
+    # ── 3. Astbuy seller cards (chase-call candidates, NOT recommendations) ──
     buyer_city = str(b.get("eto_ofr_s_city") or "").lower()
+    mcat_id = ctx.get("mapped_mcat_id")
     seller_cards = []
-    for s in sorted(ctx["seller_detailed_pool"], key=lambda x: x.get("selected_seller_rank") or 99):
-        credits = s.get("available_credits")
-        try:
-            credit_val = float(credits) if credits is not None else 0
-            has_credits = credit_val > 0
-        except Exception:
-            has_credits = False
-
+    for s in sorted(ctx["astbuy_pool"], key=lambda x: x.get("selected_seller_rank") or 99):
         pref_cities = str(s.get("a_rank_preferred_cities") or "").lower()
         consume_cities = str(s.get("b_rank_consuming_cities") or "").lower()
         city_match = bool(buyer_city and (buyer_city in pref_cities or buyer_city in consume_cities))
 
         bl_yr = int(s.get("total_bl_purchased_1yr") or 0)
         dist = s.get("eto_lead_supplier_dist")
-        member_since = s.get("glusr_usr_membersince") or "—"
+        prime_mcat = s.get("eto_lead_prime_mcat")
+        mcat_match = bool(mcat_id and prime_mcat and int(prime_mcat) == int(mcat_id))
 
         seller_cards.append({
-            "rank":           int(s.get("selected_seller_rank") or 0),
-            "company":        s.get("glusr_usr_companyname") or "—",
-            "membership":     s.get("custtype_name") or "—",
-            "alert_rank":     s.get("eto_trd_alert_rank") or "—",
-            "alert_subrank":  s.get("eto_trd_alert_subrank") or "—",
-            "credits":        credits,
-            "has_credits":    has_credits,
-            "last_login":     s.get("glusr_usr_lastlogin") or "—",
+            "rank":            int(s.get("selected_seller_rank") or 0),
+            "company":         s.get("glusr_usr_companyname") or "—",
+            "membership":      s.get("custtype_name") or "—",
+            "alert_rank":      s.get("eto_trd_alert_rank") or "—",
+            "alert_subrank":   s.get("eto_trd_alert_subrank") or "—",
+            "last_login":      s.get("glusr_usr_lastlogin") or "—",
             "bl_purchased_1yr": bl_yr,
-            "distance_km":    dist,
-            "quality_score":  s.get("_quality_score"),
-            "selection_type": s.get("selection_rejection_type") or "—",
-            "search_keyword": s.get("eto_lead_search_keyword") or "—",
-            "mapp_info":      s.get("eto_lead_supp_mapp_result_info") or "—",
+            "distance_km":     dist,
+            "quality_score":   s.get("_quality_score"),
+            "selection_type":  s.get("selection_rejection_type") or "—",
+            "search_keyword":  s.get("eto_lead_search_keyword") or "—",
+            "mapp_info":       s.get("eto_lead_supp_mapp_result_info") or "—",
             "preferred_cities": [x.strip() for x in str(s.get("a_rank_preferred_cities") or "").split(",") if x.strip()][:6],
-            "member_since":   member_since,
-            "city_match":     city_match,
+            "member_since":    s.get("glusr_usr_membersince") or "—",
+            "city_match":      city_match,
+            "mcat_match":      mcat_match,
+            "prime_mcat_id":   prime_mcat,
             "flags": {
-                "no_credits":     not has_credits,
-                "no_bl_history":  bl_yr == 0,
-                "distant":        bool(dist and float(dist) > 100),
-                "city_match":     city_match,
+                "no_bl_history": bl_yr == 0,
+                "distant":       bool(dist and float(dist) > 100),
+                "city_match":    city_match,
+                "mcat_match":    mcat_match,
             },
         })
 
-    # ── 4. Pool-level signals ─────────────────────────────────────────────────
+    # ── 4. Astbuy pool-level signals ─────────────────────────────────────────
     pool_signals = {
-        "total_sellers":        len(ctx["seller_detailed_pool"]),
-        "avg_quality":          ctx.get("seller_pool_avg_quality"),
-        "sellers_with_credits": sum(1 for s in seller_cards if s["has_credits"]),
-        "thin_sold_bl_count":   ctx.get("thin_sold_bl_count"),
-        "thin_sold_bl_channels": ctx.get("thin_sold_bl_channels"),
-        "all_no_credits":       ctx.get("seller_all_credits_blank"),
+        "total_sellers":        len(ctx["astbuy_pool"]),
+        "city_match_count":     ctx.get("astbuy_city_match", 0),
+        "with_history_count":   ctx.get("astbuy_with_history", 0),
+        "mcat_match_count":     ctx.get("astbuy_mcat_match", 0),
         "sold_benchmark":       ctx.get("sold_benchmark"),
     }
 
@@ -263,19 +283,27 @@ def _build_report_payload(ctx: dict, result: dict, source: str) -> dict:
                 "offer_id":           ctx["offer_id"],
                 "offer_name":         ctx["offer_name"],
                 "mcat_name":          ctx["mapped_mcat_name"],
+                "mapped_mcat_id":     ctx.get("mapped_mcat_id"),
                 "approval_date":      ctx.get("approval_date", ""),
                 "probable_order_value": ctx["probable_order_value"],
                 "probable_req_type":  ctx["probable_req_type"],
                 "retail_flag":        ctx.get("retail_flag"),
+                "purchased_status":    ctx.get("purchased_status", "Unknown"),
+                "purchase_count":      ctx.get("purchase_count", 0),
+                "was_purchased":       ctx.get("was_purchased", False),
+                "purchasing_sellers":  ctx.get("purchasing_sellers", []),
+                "has_business_buyer":  ctx.get("has_business_buyer", False),
                 "specs_form":         specs_form,
                 "specs_fill_count":   ctx["specs_fill_count"],
                 "total_spec_count":   len(ctx["mcat_spec_catalog"]),
             },
-            "buyer":        buyer_profile,
-            "sellers":      seller_cards,
-            "pool_signals": pool_signals,
+            "buyer":          buyer_profile,
+            "astbuy_sellers": seller_cards,
+            "sellers":        seller_cards,            # backwards-compat alias
+            "pool_signals":   pool_signals,
         },
         "rca": {k: v for k, v in result.items() if k != "all_skill_results"},
+        "actionable": result.get("actionable") or {},
         "skill_results": {
             k: {sk: sv for sk, sv in v.items() if sk != "parallel_raw"}
             for k, v in result.get("all_skill_results", {}).items()

@@ -36,7 +36,18 @@
       "Bash(python3 tests/test_redash_connection.py)",
       "Bash(python3 tests/test_dwh_connection.py)",
       "Bash(python3 -m py_compile core/orchestrator.py skills/skill_retail.py skills/skill_intent.py skills/skill_content.py core/bl_context_builder_redash.py core/data_loader.py api/main.py main.py)",
-      "Bash(python3 -c \"from api.main import app; routes=sorted\\([r.path for r in app.routes if hasattr\\(r,'path'\\)]\\); print\\('\\\\n'.join\\(routes\\)\\)\")"
+      "Bash(python3 -c \"from api.main import app; routes=sorted\\([r.path for r in app.routes if hasattr\\(r,'path'\\)]\\); print\\('\\\\n'.join\\(routes\\)\\)\")",
+      "Bash(python3 -m py_compile core/bl_context_builder_redash.py core/data_loader.py)",
+      "Bash(python3 -m py_compile core/orchestrator.py)",
+      "Bash(python3 -c \"from core.orchestrator import run_rca; print\\('OK — orchestrator imports cleanly without skill_seller'\\)\")",
+      "Bash(python3 -m py_compile core/orchestrator.py core/bl_context_builder_redash.py core/data_loader.py api/main.py)",
+      "Bash(python3 -c \"from api.main import app; print\\('routes:'\\); [print\\(' ',r.path\\) for r in app.routes if hasattr\\(r,'path'\\)]\")",
+      "Bash(python3 -m py_compile skills/skill_intent.py)",
+      "Bash(python3 -m py_compile skills/skill_retail.py)",
+      "Bash(python3 -m py_compile core/orchestrator.py core/actionable_generator.py)",
+      "Bash(python3 -m py_compile core/orchestrator.py core/actionable_generator.py api/main.py)",
+      "Bash(python3 -m py_compile core/actionable_generator.py)",
+      "Bash(python3 -m py_compile core/orchestrator.py core/actionable_generator.py core/bl_context_builder_redash.py core/data_loader.py api/main.py)"
     ]
   }
 }

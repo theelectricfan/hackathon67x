@@ -5,11 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BL RCA Agent — IndiaMART</title>
 <style>
-:root {
+:root, body[data-theme="dark"] {
   --bg:#0b0d14; --surface:#13151f; --surface2:#1a1d2e; --surface3:#1f2235;
-  --border:#252840; --text:#dde1f5; --muted:#6b7099; --muted2:#4a4f6e;
-  --accent:#5b6af0; --green:#5bf09c; --red:#f05b5b; --orange:#f09c5b;
-  --yellow:#f0d45b; --purple:#b05bf0; --blue:#5b9cf0; --teal:#5bf0d4; --pink:#f05bd4;
+  --border:#2d314c; --text:#e8ebf7; --muted:#8a8fb0; --muted2:#6a6f8d;
+  --accent:#7282f8; --green:#5bf09c; --red:#ff7575; --orange:#ffae6b;
+  --yellow:#ffd97a; --purple:#c378ff; --blue:#76aef5; --teal:#6df0d8; --pink:#ff79d4;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+body[data-theme="light"] {
+  --bg:#f4f6fb; --surface:#ffffff; --surface2:#eaedf5; --surface3:#dde1ec;
+  --border:#c9cee0; --text:#0f1424; --muted:#454963; --muted2:#6d7290;
+  --accent:#2b39c8; --green:#177846; --red:#b9342b; --orange:#a8631d;
+  --yellow:#8a6500; --purple:#5e2bb2; --blue:#1f5cc4; --teal:#0f7f72; --pink:#a3217e;
+  --shadow:0 1px 3px rgba(20,24,40,.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px;}
@@ -232,8 +240,109 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .skill-expand{display:none;padding:12px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border);}
 .skill-expand pre{font-size:.65rem;overflow:auto;max-height:260px;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-all;}
 
-.run-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:20px;font-size:.72rem;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+.run-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:14px;font-size:.72rem;color:var(--muted);display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
 .run-info-bar strong{color:var(--text);}
+
+/* Tabs */
+.tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px;padding:0;}
+.tab{background:transparent;border:none;color:var(--muted);padding:11px 18px;font-size:.85rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:inherit;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--text);border-bottom-color:var(--accent);}
+.tab .tab-i{width:18px;height:18px;border-radius:50%;background:var(--surface2);color:var(--muted);font-size:.6rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+.tab.active .tab-i{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tab .tab-badge{font-size:.6rem;padding:1px 6px;border-radius:8px;background:rgba(240,91,91,.15);color:var(--red);font-weight:700;}
+.tab .tab-badge.muted{background:var(--surface2);color:var(--muted);}
+
+/* Purchase banner */
+.purchase-banner{padding:11px 16px;border-radius:9px;font-size:.82rem;line-height:1.55;margin-bottom:16px;border:1px solid;}
+.purchase-banner strong{margin-right:6px;letter-spacing:.02em;}
+.purchase-banner.ok{background:rgba(91,240,156,.08);border-color:rgba(91,240,156,.25);color:var(--green);}
+.purchase-banner.warn{background:rgba(240,212,91,.07);border-color:rgba(240,212,91,.22);color:var(--yellow);}
+.purchase-banner.unknown{background:var(--surface2);border-color:var(--border);color:var(--muted);}
+.pb-buyer{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.18);border:1px solid rgba(91,240,156,.18);border-radius:7px;padding:5px 10px;font-size:.76rem;color:var(--text);}
+.pb-buyer strong{color:var(--green);font-weight:700;}
+.pb-tag{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.pb-date{font-size:.7rem;color:var(--muted);}
+
+/* Actionable tab */
+.actionable-wrap{display:flex;flex-direction:column;gap:14px;}
+.act-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px 26px;}
+.act-headline{background:linear-gradient(135deg,rgba(91,106,240,.07),rgba(176,91,240,.04));border-color:rgba(91,106,240,.25);}
+.act-eyebrow{font-size:.62rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:8px;font-weight:700;}
+.act-h{font-size:1.45rem;font-weight:800;letter-spacing:-.015em;line-height:1.35;color:var(--text);}
+.act-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.act-pill{font-size:.66rem;font-weight:700;padding:4px 10px;border-radius:9px;letter-spacing:.04em;border:1px solid transparent;}
+.act-pill.ok{background:rgba(91,240,156,.1);color:var(--green);border-color:rgba(91,240,156,.25);}
+.act-pill.warn{background:rgba(240,212,91,.1);color:var(--yellow);border-color:rgba(240,212,91,.25);}
+.act-pill.conf{background:rgba(91,106,240,.1);color:var(--accent);border-color:rgba(91,106,240,.25);}
+.act-pill.sev0{background:rgba(91,240,156,.08);color:var(--green);}
+.act-pill.sev1{background:rgba(240,212,91,.1);color:var(--yellow);}
+.act-pill.sev2{background:rgba(240,156,91,.1);color:var(--orange);}
+.act-pill.sev3{background:rgba(240,91,91,.1);color:var(--red);}
+.act-section-title{font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700;margin-bottom:12px;}
+.act-detail{font-size:.9rem;line-height:1.7;color:var(--text);}
+.act-detail.muted{color:var(--muted);font-size:.82rem;}
+.act-detail p{margin:0 0 10px;}.act-detail p:last-child{margin-bottom:0;}
+.act-items{display:flex;flex-direction:column;gap:10px;}
+.act-item{display:flex;gap:14px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:11px;padding:14px 16px;}
+.act-item-rank{width:30px;height:30px;border-radius:50%;background:rgba(91,106,240,.15);color:var(--accent);font-weight:800;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(91,106,240,.3);}
+.act-item-body{flex:1;min-width:0;}
+.act-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;flex-wrap:wrap;}
+.act-item-label{font-size:.95rem;font-weight:700;color:var(--text);}
+.act-item-impact{font-size:.6rem;padding:2px 8px;border-radius:6px;letter-spacing:.04em;font-weight:700;text-transform:uppercase;}
+.act-item-impact.high{background:rgba(240,91,91,.1);color:var(--red);}
+.act-item-impact.med{background:rgba(240,156,91,.1);color:var(--orange);}
+.act-item-impact.low{background:rgba(91,240,156,.08);color:var(--green);}
+.act-item-detail{font-size:.82rem;color:var(--muted);line-height:1.6;}
+.act-caveat{border-color:rgba(240,212,91,.18);background:rgba(240,212,91,.04);}
+.act-empty{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:32px;text-align:center;}
+.act-empty-title{font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:6px;}
+.act-empty-body{font-size:.78rem;color:var(--muted);}
+
+/* Theme toggle */
+.theme-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:6px 11px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;
+  font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:color .15s,border-color .15s;}
+.theme-btn:hover{color:var(--text);border-color:var(--accent);}
+
+/* Spec form table */
+.spec-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:.85rem;}
+.spec-table thead{background:var(--surface2);}
+.spec-table th{text-align:left;padding:10px 12px;font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);}
+.spec-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.spec-table tr:last-child td{border-bottom:none;}
+.spec-table tr.sf-filled td{background:rgba(91,240,156,.025);}
+.sf-pri{width:46px;text-align:center;}
+.sf-name{font-weight:600;color:var(--text);min-width:140px;}
+.sf-val .cell-val{color:var(--text);font-weight:600;}
+.sf-val .cell-num{font-family:'JetBrains Mono','SF Mono',monospace;font-weight:700;color:var(--green);font-size:.92rem;}
+.sf-val .cell-empty{color:var(--muted2);font-style:italic;font-size:.78rem;}
+.sf-opts{font-size:.72rem;line-height:1.8;}
+.sf-opts .opt-pill{font-size:.7rem;padding:2px 8px;border-radius:9px;background:var(--surface2);border:1px solid var(--border);color:var(--muted2);margin-right:4px;display:inline-block;}
+.sf-opts .opt-pill.selected{background:rgba(91,240,156,.12);border-color:var(--green);color:var(--green);font-weight:700;}
+.sf-opts .cell-muted{color:var(--muted2);font-style:italic;font-size:.72rem;}
+.sf-extra-tag{display:inline-block;background:rgba(91,106,240,.12);color:var(--accent);font-size:.55rem;font-weight:800;padding:1px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.05em;margin-left:6px;vertical-align:middle;}
+
+/* Purchasing-sellers card (General Info tab) */
+.purchaser-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;margin-bottom:24px;}
+.purchaser-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.purchaser-title{font-size:.95rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+.purchaser-pill{font-size:.62rem;font-weight:800;padding:3px 8px;border-radius:6px;background:rgba(91,240,156,.12);color:var(--green);letter-spacing:.04em;}
+.purchaser-sub{font-size:.72rem;color:var(--muted);}
+.purchaser-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0;}
+.purchaser-card{padding:14px 18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.purchaser-card:last-child{border-right:none;}
+.pc-name{font-size:.92rem;font-weight:700;color:var(--text);}
+.pc-tag{display:inline-block;font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:5px;background:var(--surface2);color:var(--muted);margin-left:8px;letter-spacing:.04em;}
+.pc-row{display:flex;gap:8px;font-size:.72rem;color:var(--muted);margin-top:8px;flex-wrap:wrap;}
+.pc-row .k{color:var(--muted2);}
+.pc-row .v{color:var(--text);font-weight:600;}
+.pc-row .v.alert-A{color:var(--green);}
+.pc-row .v.alert-B{color:var(--yellow);}
+.pc-row .v.alert-C{color:var(--red);}
+.pc-cities{font-size:.66rem;color:var(--muted);margin-top:8px;line-height:1.6;}
+.pc-cities .chip{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;margin-right:3px;color:var(--muted);}
+.pc-cities .chip.match{background:rgba(91,106,240,.1);border-color:var(--accent);color:var(--accent);font-weight:700;}
 .ds-ok{color:var(--green);font-size:.65rem;font-weight:700;padding:1px 5px;background:rgba(91,240,156,.1);border-radius:4px;}
 .ds-miss{color:var(--muted2);font-size:.65rem;padding:1px 5px;}
 .toast{position:fixed;bottom:24px;right:24px;background:#1e2030;border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:8px;font-size:.8rem;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:999;max-width:320px;}
@@ -255,6 +364,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
   <div class="status-row">
     <div class="dot" id="apiDot"></div>
     <span class="api-txt" id="apiTxt">Checking...</span>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark / light mode"><span id="themeIcon">🌙</span><span id="themeLbl">Dark</span></button>
     <button class="btn btn-green" onclick="loadReport()" id="demoBtn">Load Demo BL</button>
   </div>
 </header>
@@ -290,11 +400,26 @@ const BC = {
   THIN_CONTENT:        {fill:'#f09c5b', bg:'rgba(240,156,91,.08)',  border:'#f09c5b',  label:'Thin Content',        id:'B2'},
   SPEC_CONTRADICTION:  {fill:'#b05bf0', bg:'rgba(176,91,240,.08)',  border:'#b05bf0',  label:'Spec Contradiction',  id:'B3'},
   LOW_BUYER_INTENT:    {fill:'#f0d45b', bg:'rgba(240,212,91,.08)',  border:'#f0d45b',  label:'Low Buyer Intent',    id:'B4'},
-  SELLER_SIDE_FAILURE: {fill:'#f05b5b', bg:'rgba(240,91,91,.08)',   border:'#f05b5b',  label:'Seller Side Failure', id:'B5'},
-  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', bg:'rgba(91,240,212,.08)',  border:'#5bf0d4',  label:'Spec Value Quality',  id:'B6'},
-  QUANTITY_MISMATCH:   {fill:'#f05bd4', bg:'rgba(240,91,212,.08)',  border:'#f05bd4',  label:'Quantity Mismatch',   id:'B7'},
-  RETAIL_QUERY:        {fill:'#a0a8c6', bg:'rgba(160,168,198,.08)', border:'#a0a8c6',  label:'Retail Query',        id:'B8'},
+  SPEC_VALUE_QUALITY:  {fill:'#5bf0d4', bg:'rgba(91,240,212,.08)',  border:'#5bf0d4',  label:'Spec Value Quality',  id:'B5'},
+  QUANTITY_MISMATCH:   {fill:'#f05bd4', bg:'rgba(240,91,212,.08)',  border:'#f05bd4',  label:'Quantity Mismatch',   id:'B6'},
+  RETAIL_QUERY:        {fill:'#a0a8c6', bg:'rgba(160,168,198,.08)', border:'#a0a8c6',  label:'Retail Query',        id:'B7'},
 };
+
+// Theme toggle
+function applyTheme(t) {
+  document.body.setAttribute('data-theme', t);
+  const isLight = t === 'light';
+  const icon = document.getElementById('themeIcon');
+  const lbl = document.getElementById('themeLbl');
+  if (icon) icon.textContent = isLight ? '☀' : '🌙';
+  if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+}
+function toggleTheme() {
+  const next = (document.body.getAttribute('data-theme') === 'light') ? 'dark' : 'light';
+  localStorage.setItem('blrca_theme', next);
+  applyTheme(next);
+}
+applyTheme(localStorage.getItem('blrca_theme') || 'dark');
 
 async function checkHealth() {
   try {
@@ -349,13 +474,179 @@ function runByOffer() {
 }
 
 function renderReport(data) {
-  const {report,rca,skill_results}=data;
+  const {report,rca,skill_results,actionable}=data;
+  const astbuy = report.astbuy_sellers || report.sellers || [];
   document.getElementById('report').innerHTML=
     renderRunBar(rca,data)+
-    renderSection1(report.bl)+
-    renderSection2(report.buyer,skill_results)+
-    renderSection3(report.sellers,report.pool_signals,skill_results.seller,report.buyer.city)+
-    renderSection4(rca,skill_results);
+    renderTabBar(astbuy.length, rca.overlap_count||0)+
+    `<div class="tab-panel" data-tab="actionable">
+       ${renderActionable(actionable, rca, report.bl)}
+     </div>
+     <div class="tab-panel" data-tab="overview" style="display:none">
+       ${renderPurchaseBanner(report.bl)}
+       ${renderPurchasersBlock(report.bl, report.buyer.city)}
+       ${renderSection1(report.bl)}
+       ${renderSection2(report.buyer,skill_results)}
+     </div>
+     <div class="tab-panel" data-tab="diagnosis" style="display:none">
+       ${renderSection4(rca,skill_results)}
+     </div>
+     <div class="tab-panel" data-tab="astbuy" style="display:none">
+       ${renderSection3(astbuy, report.pool_signals, report.buyer.city)}
+     </div>`;
+}
+
+function renderTabBar(astbuyCount, overlap) {
+  return `<div class="tab-bar">
+    <button class="tab active" onclick="switchTab(this,'actionable')">
+      <span class="tab-i">★</span><span>Actionable</span>
+    </button>
+    <button class="tab" onclick="switchTab(this,'overview')">
+      <span class="tab-i">1</span><span>General Info</span>
+    </button>
+    <button class="tab" onclick="switchTab(this,'diagnosis')">
+      <span class="tab-i">2</span><span>Bucket Diagnosis</span>
+      ${overlap>0?`<span class="tab-badge">${overlap}</span>`:''}
+    </button>
+    <button class="tab" onclick="switchTab(this,'astbuy')">
+      <span class="tab-i">3</span><span>Astbuy Sellers</span>
+      ${astbuyCount>0?`<span class="tab-badge muted">${astbuyCount}</span>`:''}
+    </button>
+  </div>`;
+}
+
+function renderActionable(a, rca, bl) {
+  if (!a || a.error) {
+    return `<div class="act-empty">
+      <div class="act-empty-title">Final actionable couldn't be generated</div>
+      <div class="act-empty-body">${a?.error ? a.error : 'The synthesis LLM call failed. See Bucket Diagnosis tab for raw bucket verdicts.'}</div>
+    </div>`;
+  }
+  const headline = a.root_cause_headline || rca.overlap_summary || 'No headline produced.';
+  const detail = a.root_cause_detail || '';
+  const items = a.action_items || [];
+  const conf = a.confidence;
+  const caveats = a.caveats || '';
+  const purchasedBadge = bl.was_purchased
+    ? `<span class="act-pill ok">BL was purchased</span>`
+    : `<span class="act-pill warn">BL not purchased</span>`;
+
+  return `<div class="actionable-wrap">
+    <div class="act-card act-headline">
+      <div class="act-eyebrow">Root cause · synthesised by LLM from all signals</div>
+      <h2 class="act-h">${escapeHtml(headline)}</h2>
+      <div class="act-meta">
+        ${purchasedBadge}
+        ${conf!=null?`<span class="act-pill conf">Confidence ${conf}%</span>`:''}
+        <span class="act-pill ${(rca.overlap_count||0)>=3?'sev3':(rca.overlap_count||0)>=2?'sev2':(rca.overlap_count||0)>=1?'sev1':'sev0'}">${rca.overlap_count||0} active bucket${rca.overlap_count===1?'':'s'}</span>
+      </div>
+    </div>
+
+    ${detail ? `<div class="act-card">
+      <div class="act-section-title">Why this happened</div>
+      <div class="act-detail">${escapeHtml(detail).split(/\\n\\n+/).map(p=>`<p>${p}</p>`).join('')}</div>
+    </div>` : ''}
+
+    ${items.length ? `<div class="act-card">
+      <div class="act-section-title">Action items · ordered by impact</div>
+      <div class="act-items">${items.map(it=>renderActionItem(it)).join('')}</div>
+    </div>` : ''}
+
+    ${caveats ? `<div class="act-card act-caveat">
+      <div class="act-section-title">Caveats</div>
+      <div class="act-detail muted">${escapeHtml(caveats)}</div>
+    </div>` : ''}
+  </div>`;
+}
+
+function renderPurchasersBlock(bl, buyerCity) {
+  const ps = (bl && bl.purchasing_sellers) || [];
+  if (!ps.length) return '';
+  const bcl = (buyerCity || '').toLowerCase();
+  let html = `<div class="purchaser-block">
+    <div class="purchaser-head">
+      <div class="purchaser-title">Purchased by · ${ps.length} seller${ps.length===1?'':'s'} <span class="purchaser-pill">REAL TRANSACTION</span></div>
+      <div class="purchaser-sub">Pulled from fact_eto_lead_pur · seller profile enriched from dim_glusr_usr + alert/loc-pref</div>
+    </div>
+    <div class="purchaser-grid">`;
+  for (const s of ps) {
+    const alertLetter = (s.eto_trd_alert_rank || '').toString().toUpperCase()[0] || '';
+    const alertCls = alertLetter ? `alert-${alertLetter}` : '';
+    const cities = (s.a_rank_preferred_cities || '').split(',').map(c => c.trim()).filter(Boolean).slice(0, 6);
+    const purDate = (s.purchased_at || '').toString().split('T')[0];
+    const memSince = (s.member_since || '').toString().split('T')[0];
+    const lastLogin = (s.last_login || '').toString().split('T')[0];
+    html += `<div class="purchaser-card">
+      <div class="pc-name">${escapeHtml(s.company || '—')}<span class="pc-tag">${escapeHtml(s.custtype_name || '?')}</span></div>
+      <div class="pc-row"><span class="k">Bought on</span><span class="v">${purDate || '—'}</span></div>
+      <div class="pc-row"><span class="k">Alert rank</span><span class="v ${alertCls}">${(s.eto_trd_alert_rank||'—')}${s.eto_trd_alert_subrank?` / ${s.eto_trd_alert_subrank}`:''}</span></div>
+      <div class="pc-row"><span class="k">BLs bought (1y)</span><span class="v">${s.total_bl_purchased_1yr ?? 0}</span></div>
+      <div class="pc-row"><span class="k">City match</span><span class="v ${s.city_match?'alert-A':''}">${s.city_match?'✓ yes':'✗ no'}</span></div>
+      <div class="pc-row"><span class="k">Member since</span><span class="v">${memSince || '—'}</span><span class="k">·</span><span class="k">last login</span><span class="v">${lastLogin || '—'}</span></div>
+      ${cities.length?`<div class="pc-cities">${cities.map(c=>`<span class="chip ${c.toLowerCase()===bcl?'match':''}">${escapeHtml(c)}</span>`).join('')}</div>`:''}
+    </div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderActionItem(it) {
+  const impact = (it.impact||'Medium').toLowerCase();
+  const impCls = impact.startsWith('high')?'high':impact.startsWith('low')?'low':'med';
+  return `<div class="act-item">
+    <div class="act-item-rank">${it.priority||'•'}</div>
+    <div class="act-item-body">
+      <div class="act-item-head">
+        <span class="act-item-label">${escapeHtml(it.label||'Action')}</span>
+        <span class="act-item-impact ${impCls}">${escapeHtml(it.impact||'Medium')} impact</span>
+      </div>
+      <div class="act-item-detail">${escapeHtml(it.detail||'')}</div>
+    </div>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+function switchTab(btn, name) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.style.display = (p.dataset.tab === name) ? 'block' : 'none';
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderPurchaseBanner(bl) {
+  if (!bl) return '';
+  const purchased = bl.was_purchased;
+  const status = bl.purchased_status || 'Unknown';
+  const n = bl.purchase_count || 0;
+  const buyers = bl.purchasing_sellers || [];
+  if (purchased) {
+    const buyerList = buyers.length
+      ? `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">${buyers.map(s => `
+          <span class="pb-buyer">
+            <strong>${s.company || '—'}</strong>
+            <span class="pb-tag">${s.custtype_name || '?'}</span>
+            ${s.purchased_at ? `<span class="pb-date">${(s.purchased_at||'').split('T')[0]}</span>` : ''}
+          </span>`).join('')}</div>`
+      : `<div style="margin-top:6px;font-size:.76rem;color:var(--muted)">Buyer details not retained (archived warehouse).</div>`;
+    return `<div class="purchase-banner ok">
+      <strong>Purchased</strong> · this BL was bought by ${n} seller${n===1?'':'s'}. RCA below is post-hoc.
+      ${buyerList}
+    </div>`;
+  }
+  if (status === 'Not Purchased') {
+    return `<div class="purchase-banner warn">
+      <strong>Not Purchased</strong> · no seller in eto_lead_pur_hist / iil_lead_pur_hist bought this BL. RCA applies.
+    </div>`;
+  }
+  return `<div class="purchase-banner unknown">
+    <strong>Status unknown</strong> · couldn't determine purchase state.
+  </div>`;
 }
 
 function renderRunBar(rca,data) {
@@ -387,31 +678,58 @@ function renderSection1(bl) {
         ${bl.probable_req_type?`<div class="meta-chip"><span class="lbl">Req Type</span><span class="val">${bl.probable_req_type}</span></div>`:''}
       </div>
     </div>
-    <div class="spec-grid">`;
+    <table class="spec-table">
+      <thead>
+        <tr><th style="width:40px">P</th><th>Spec</th><th>Buyer value</th><th>Catalog options</th></tr>
+      </thead>
+      <tbody>`;
   for(const spec of bl.specs_form) {
-    const filled=spec.is_filled;
-    html+=`<div class="spec-card ${filled?'filled':'unfilled'}">
-      <div class="spec-name">
-        ${spec.priority<=2?`<span class="priority-star">${'★'.repeat(3-spec.priority)}</span>`:''}
-        ${spec.name}
-        <span class="fill-badge ${filled?'ok':'miss'}">${filled?'FILLED':'EMPTY'}</span>
-      </div>`;
-    if(spec.is_free_text){
-      html+=filled?`<div class="free-text-val">${spec.buyer_value}</div>`:`<div class="free-text-val empty">Not specified</div>`;
+    const isQuantitySpec = /^quantity( unit)?$/i.test(spec.name);
+    const filled = spec.is_filled;
+    const star = spec.priority<=2 ? '★'.repeat(3-spec.priority) : '';
+
+    let valueCell;
+    if (isQuantitySpec) {
+      // Quantity is always a number (or unit text) — never use "Other" UI.
+      valueCell = filled
+        ? `<span class="cell-num">${spec.buyer_value}</span>`
+        : `<span class="cell-empty">—</span>`;
+    } else if (spec.is_free_text) {
+      valueCell = filled
+        ? `<span class="cell-val">${spec.buyer_value}</span>`
+        : `<span class="cell-empty">not specified</span>`;
+    } else if (filled) {
+      valueCell = `<span class="cell-val">${spec.buyer_value}</span>`;
     } else {
-      html+=`<div class="spec-options">`;
-      for(const opt of spec.options){
-        const sel=filled&&opt===spec.buyer_value;
-        html+=`<span class="opt-pill ${sel?'selected':''}">${opt}</span>`;
-      }
-      if(spec.is_other&&filled) html+=`<span class="opt-pill other-selected">Other</span>`;
-      html+=`</div>`;
-      if(spec.is_other&&filled) html+=`<div class="other-val">Typed: "${spec.buyer_value}"</div>`;
-      if(!filled) html+=`<div class="not-filled">Not filled</div>`;
+      valueCell = `<span class="cell-empty">not filled</span>`;
     }
-    html+=`</div>`;
+
+    let optsCell;
+    if (isQuantitySpec) {
+      optsCell = `<span class="cell-muted">(numeric — no fixed options)</span>`;
+    } else if (spec.in_catalog === false) {
+      optsCell = `<span class="cell-muted">(buyer-filled value outside MCAT catalog)</span>`;
+    } else if (spec.options && spec.options.length) {
+      optsCell = spec.options.map(opt => {
+        const sel = filled && opt === spec.buyer_value;
+        return `<span class="opt-pill ${sel?'selected':''}">${opt}</span>`;
+      }).join('');
+    } else {
+      optsCell = `<span class="cell-muted">free-text</span>`;
+    }
+
+    const nameCell = spec.in_catalog === false
+      ? `${spec.name} <span class="sf-extra-tag">extra</span>`
+      : spec.name;
+
+    html += `<tr class="${filled?'sf-filled':'sf-empty'} ${spec.in_catalog===false?'sf-extra':''}">
+      <td class="sf-pri">${star?`<span class="priority-star">${star}</span>`:''}</td>
+      <td class="sf-name">${nameCell}</td>
+      <td class="sf-val">${valueCell}</td>
+      <td class="sf-opts">${optsCell}</td>
+    </tr>`;
   }
-  html+=`</div></div>`;
+  html += `</tbody></table></div>`;
   return html;
 }
 
@@ -477,100 +795,69 @@ function renderSection2(buyer,skills) {
 }
 function flag(t,x){return `<div class="flag ${t}">${x}</div>`;}
 
-// ── SECTION 3: Seller Pool ─────────────────────────────────
-function renderSection3(sellers,pool,b5,buyerCity) {
-  const pm=b5?.pool_metrics||{};
-  const total=pm.pool_size||pool.total_sellers||0;
+// ── SECTION 3: Astbuy Sellers (NOT part of analysis) ──────────
+function renderSection3(sellers, pool, buyerCity) {
+  const total = pool?.total_sellers || sellers?.length || 0;
+  const cityMatch = pool?.city_match_count ?? '—';
+  const withHist = pool?.with_history_count ?? '—';
+  const mcatMatch = pool?.mcat_match_count ?? '—';
 
-  let html=`<div class="section">
+  let html = `<div class="section">
     <div class="section-head">
       <div class="section-num">3</div>
-      <div class="section-title">Seller Pool</div>
-      <div class="section-sub">${total} sellers matched</div>
+      <div class="section-title">Astbuy Sellers</div>
+      <div class="section-sub">${total} sellers — chase-call pool, NOT original recommendations</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 16px;margin-bottom:14px;font-size:.76rem;color:var(--muted);line-height:1.6">
+      <strong style="color:var(--text)">What this is: </strong>
+      these are the sellers IndiaMART selected to chase this BL via phone after it failed to sell organically (astbuy routing).
+      They are <strong style="color:var(--text)">not</strong> the original recommended-seller pool — so this data is informational, not part of the RCA verdict.
     </div>
     <div class="pool-summary">
       <div class="pool-stat ${total>0?'ok':'warn'}">
         <div class="ps-val">${total}</div>
-        <div class="ps-lbl">Matched Sellers</div>
+        <div class="ps-lbl">Astbuy Pool</div>
       </div>
-      <div class="pool-stat ${pm.with_credits?.count>0?'ok':'warn'}">
-        <div class="ps-val">${pm.with_credits?.count??pool.sellers_with_credits??'—'}</div>
-        <div class="ps-sub">${pm.with_credits?`${pm.with_credits.pct}%`:''}</div>
-        <div class="ps-lbl">Have Credits</div>
+      <div class="pool-stat ${mcatMatch>0?'ok':'warn'}">
+        <div class="ps-val">${mcatMatch}/${total}</div>
+        <div class="ps-lbl">MCAT match</div>
       </div>
-      <div class="pool-stat ${(pm.avg_quality_score||pool.avg_quality||0)>=60?'ok':'warn'}">
-        <div class="ps-val">${pm.avg_quality_score??pool.avg_quality??'—'}</div>
-        <div class="ps-lbl">Avg Quality</div>
+      <div class="pool-stat ${cityMatch>0?'ok':'warn'}">
+        <div class="ps-val">${cityMatch}/${total}</div>
+        <div class="ps-lbl">City match</div>
       </div>
-      <div class="pool-stat">
-        <div class="ps-val">${pm.with_bl_history?.label??'—'}</div>
-        <div class="ps-lbl">BL History</div>
+      <div class="pool-stat ${withHist>0?'ok':'warn'}">
+        <div class="ps-val">${withHist}/${total}</div>
+        <div class="ps-lbl">Has BL history (1y)</div>
       </div>
-      <div class="pool-stat">
-        <div class="ps-val">${pm.active_last_30d?.label??'—'}</div>
-        <div class="ps-lbl">Active 30d</div>
-      </div>
-      <div class="pool-stat">
-        <div class="ps-val">${pm.city_match?.label??'—'}</div>
-        <div class="ps-lbl">City Match</div>
-      </div>
-      ${pm.distance_km?`<div class="pool-stat">
-        <div class="ps-val">${pm.distance_km.avg??'—'}</div>
-        <div class="ps-sub">min ${pm.distance_km.min} / max ${pm.distance_km.max} km</div>
-        <div class="ps-lbl">Avg Distance km</div>
-      </div>`:''}
     </div>`;
 
-  if(pm.all_credits_blank||pool.all_no_credits) {
-    html+=`<div style="background:rgba(240,91,91,.07);border:1px solid rgba(240,91,91,.2);border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:.78rem;color:var(--red)">
-      ✗ All ${total} matched sellers have no available credits — none can respond to this BuyLead
-    </div>`;
-  }
-  if(pm.alert_breakdown) {
-    const ab=pm.alert_breakdown;
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:.75rem">
-      <span style="color:var(--muted)">Alert Rank:</span>
-      <span style="color:var(--green)">A: ${ab.A||0}</span>
-      <span style="color:var(--yellow)">B: ${ab.B||0}</span>
-      <span style="color:var(--red)">C: ${ab.C||0}</span>
-      ${ab.unknown?`<span style="color:var(--muted2)">Unknown: ${ab.unknown}</span>`:''}
-    </div>`;
-  }
-  if(pool.thin_sold_bl_count!==null&&pool.thin_sold_bl_count!==undefined) {
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:.73rem;color:var(--muted)">
-      DS5 Benchmark: <strong style="color:var(--text)">${pool.thin_sold_bl_count}</strong> thin-content BLs (0-2 specs) have sold in this MCAT historically
-    </div>`;
-  }
-  if(b5?.combined_reasoning) {
-    html+=`<div style="background:rgba(240,91,91,.05);border:1px solid rgba(240,91,91,.15);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.75rem;color:var(--muted);line-height:1.6">
-      <strong style="color:var(--red)">B5 Pool Diagnosis: </strong>${b5.combined_reasoning}
-    </div>`;
+  if (total === 0) {
+    html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;color:var(--muted);font-size:.82rem">
+      No astbuy sellers were routed for this BL (or routing data has been purged for an archived offer).
+    </div></div>`;
+    return html;
   }
 
-  html+=`<div class="sellers-grid">`;
-  for(const s of sellers) html+=renderSellerCard(s,buyerCity,b5);
-  html+=`</div></div>`;
+  html += `<div class="sellers-grid">`;
+  for (const s of sellers) html += renderAstbuySellerCard(s, buyerCity);
+  html += `</div></div>`;
   return html;
 }
 
-function renderSellerCard(s,buyerCity,b5) {
-  const qs=s.quality_score||0;
-  const qColor=qs>=70?'var(--green)':qs>=40?'var(--yellow)':'var(--red)';
-  const alertCls=`alert-${s.alert_rank||'C'}`;
-  const credVal=s.has_credits?(s.credits||'—'):'NONE';
-  const creditsCls=s.has_credits?'ok':'bad';
-  const dist=s.distance_km;
-  const distLabel=dist==null?'—':dist===0?'Local':`${dist} km`;
-  const distCls=dist===0?'ok':dist>200?'bad':'warn';
-  const blCls=s.bl_purchased_1yr===0?'bad':s.bl_purchased_1yr>=10?'ok':'warn';
+function renderAstbuySellerCard(s, buyerCity) {
+  const qs = s.quality_score || 0;
+  const qColor = qs >= 70 ? 'var(--green)' : qs >= 40 ? 'var(--yellow)' : 'var(--red)';
+  const alertLetter = (s.alert_rank || 'C').toUpperCase()[0] || 'C';
+  const alertCls = `alert-${alertLetter}`;
+  const dist = s.distance_km;
+  const distLabel = dist == null ? '—' : dist === 0 ? 'Local' : `${dist} km`;
+  const distCls = dist === 0 ? 'ok' : dist > 200 ? 'bad' : 'warn';
+  const blCls = s.bl_purchased_1yr === 0 ? 'bad' : s.bl_purchased_1yr >= 10 ? 'ok' : 'warn';
 
-  // Find per-seller reasoning from B5
-  const b5reasons=b5?.per_seller_reasoning||[];
-  const myReason=b5reasons.find(r=>r.rank===s.rank);
-
-  let html=`<div class="seller-card">
+  let html = `<div class="seller-card">
     <div class="sc-head">
-      <div class="sc-rank ${s.rank<=2?'top':''}">#${s.rank}</div>
+      <div class="sc-rank ${s.rank<=2?'top':''}">#${s.rank||'?'}</div>
       <div class="sc-info">
         <div class="sc-company">${s.company}</div>
         <div class="sc-mem">${s.membership}</div>
@@ -578,49 +865,32 @@ function renderSellerCard(s,buyerCity,b5) {
       <div class="alert-badge ${alertCls}">${s.alert_rank||'?'} ${s.alert_subrank||''}</div>
     </div>
     <div class="sc-metrics">
-      <div class="sc-metric"><div class="mv ${creditsCls}">${credVal}</div><div class="ml">Credits</div></div>
+      <div class="sc-metric"><div class="mv ${s.mcat_match?'ok':'bad'}">${s.mcat_match?'YES':'NO'}</div><div class="ml">MCAT</div></div>
       <div class="sc-metric"><div class="mv ${blCls}">${s.bl_purchased_1yr}</div><div class="ml">BL/yr</div></div>
       <div class="sc-metric"><div class="mv ${distCls}">${distLabel}</div><div class="ml">Distance</div></div>
       <div class="sc-metric"><div class="mv ${qs>=60?'ok':qs>=30?'warn':'bad'}">${qs}</div><div class="ml">Quality</div></div>
     </div>
     <div class="sc-quality">
-      <div class="quality-lbl">Quality Score</div>
+      <div class="quality-lbl">Astbuy Quality</div>
       <div class="quality-row">
         <div class="quality-bar-bg"><div class="quality-bar-fill" style="width:${qs}%;background:${qColor}"></div></div>
         <div class="quality-pct" style="color:${qColor}">${qs}/100</div>
       </div>
+    </div>
+    <div class="sc-flags">
+      ${s.mcat_match ? sflag('ok','✓ MCAT match') : sflag('bad','✗ MCAT mismatch')}
+      ${s.bl_purchased_1yr===0 ? sflag('bad','✗ 0 BL/yr') : sflag('ok',`✓ ${s.bl_purchased_1yr} BL/yr`)}
+      ${s.city_match ? sflag('ok','✓ City match') : sflag('warn','⚠ City mismatch')}
     </div>`;
 
-  // Blockers from B5 per_seller
-  const b5sellers=b5?.per_seller||[];
-  const b5s=b5sellers.find(x=>x.rank===s.rank);
-  if(b5s?.blockers?.length) {
-    html+=`<div class="sc-blocker">✗ ${b5s.blockers.join(' · ')}</div>`;
-  }
-
-  html+=`<div class="sc-flags">`;
-  if(!s.has_credits) html+=sflag('bad','✗ No credits');
-  else html+=sflag('ok','✓ Has credits');
-  if(s.bl_purchased_1yr===0) html+=sflag('bad','✗ 0 BL/yr');
-  else html+=sflag('ok',`✓ ${s.bl_purchased_1yr} BL/yr`);
-  if(s.city_match) html+=sflag('ok','✓ City match');
-  else html+=sflag('warn','⚠ City mismatch');
-  html+=`</div>`;
-
-  if(myReason?.reason) {
-    html+=`<div style="padding:6px 14px 10px;font-size:.68rem;color:var(--muted);border-top:1px solid var(--border);line-height:1.5">
-      <strong style="color:var(--muted)">Why didn't respond: </strong>${myReason.reason}
-    </div>`;
-  }
-
-  if(s.preferred_cities?.length) {
-    const bcl=(buyerCity||'').toLowerCase();
-    html+=`<div class="sc-cities">
+  if (s.preferred_cities?.length) {
+    const bcl = (buyerCity || '').toLowerCase();
+    html += `<div class="sc-cities">
       <div style="font-size:.6rem;color:var(--muted);font-weight:600;margin-bottom:3px">Preferred Cities</div>
       <div class="city-chips">${s.preferred_cities.map(c=>`<span class="city-chip ${c.toLowerCase()===bcl?'match':''}">${c}</span>`).join('')}</div>
     </div>`;
   }
-  html+=`</div>`;
+  html += `</div>`;
   return html;
 }
 function sflag(t,x){return `<span class="sc-flag ${t}">${x}</span>`;}
@@ -640,67 +910,64 @@ function renderSection4(rca,skills) {
       <div class="section-sub">${rca.overlap_summary}</div>
     </div>`;
 
-  // Top row: overlap banner + Venn
-  html+=`<div class="rca-top">
-    <div>
-      <div class="overlap-banner ${bannerCls}">
-        <div>
-          <div class="overlap-left">
-            <div class="overlap-num" style="color:${numColor}">${n}</div>
-            <div class="overlap-txt">${n===1?'active issue detected':n===0?'no significant issues':'overlapping issues detected'}</div>
-          </div>
-          <div class="overlap-chips">`;
+  // Overlap banner only (Venn removed per request)
+  html+=`<div class="overlap-banner ${bannerCls}">
+    <div class="overlap-left">
+      <div class="overlap-num" style="color:${numColor}">${n}</div>
+      <div class="overlap-txt">${n===1?'active issue detected':n===0?'no significant issues':'overlapping issues detected'}</div>
+    </div>
+    <div class="overlap-chips">`;
   for(const ab of active) {
     const c=BC[ab.bucket]||{};
     html+=`<span class="ov-chip" style="background:${c.bg};color:${c.fill};border:1px solid ${c.border}">${c.id} ${c.label} ${ab.confidence}%</span>`;
   }
-  html+=`</div></div></div>`;
+  html+=`</div></div>`;
 
   // Radar chart (all 7 scores)
   html+=renderRadar(scores);
-  html+=`</div>`;
 
-  // Venn diagram (if 2+ active)
-  if(active.length>=2) {
-    html+=renderVenn(active);
-  }
-  html+=`</div>`;
-
-  // Active bucket cards
+  // ── ALL bucket cards (active AND inactive, click any to expand) ──────────
+  const SKILL_KEY={mcat:'MCAT_MISMATCH',content:'THIN_CONTENT',spec:'SPEC_CONTRADICTION',intent:'LOW_BUYER_INTENT',spec_quality:'SPEC_VALUE_QUALITY',quantity:'QUANTITY_MISMATCH',retail:'RETAIL_QUERY'};
+  // Sort: active first (desc), then inactive (desc)
+  const orderedBuckets = Object.entries(scores)
+    .map(([b,s])=>({b,s,active:s>ACTIVE_THRESHOLD}))
+    .sort((a,z)=>(z.active-a.active)||(z.s-a.s));
   html+=`<div class="bucket-cards">`;
-  for(let i=0;i<active.length;i++) {
-    const ab=active[i];
-    const c=BC[ab.bucket]||{};
-    const skillKey=Object.entries({mcat:'MCAT_MISMATCH',content:'THIN_CONTENT',spec:'SPEC_CONTRADICTION',intent:'LOW_BUYER_INTENT',seller:'SELLER_SIDE_FAILURE',spec_quality:'SPEC_VALUE_QUALITY',quantity:'QUANTITY_MISMATCH',retail:'RETAIL_QUERY'}).find(([k,v])=>v===ab.bucket)?.[0];
-    const sr=skills[skillKey]||{};
-    const uid=`bd_${ab.bucket}`;
+  for(let i=0; i<orderedBuckets.length; i++) {
+    const {b, s: score, active: isAct} = orderedBuckets[i];
+    const c = BC[b]||{};
+    const skillKey = Object.entries(SKILL_KEY).find(([k,v])=>v===b)?.[0];
+    const sr = skills[skillKey]||{};
+    const uid = `bd_${b}`;
+    const isPrim = (i===0 && isAct);
 
-    html+=`<div class="bucket-card ${i===0?'primary':''}" style="background:${c.bg};border-color:${c.border}">
+    html+=`<div class="bucket-card ${isPrim?'primary':''} ${isAct?'':'inactive'}" style="background:${isAct?c.bg:'var(--surface2)'};border-color:${isAct?c.border:'var(--border)'}">
       <div class="bc-header" onclick="toggleDetail('${uid}')">
         <div class="bc-label-row">
-          <div class="bc-name" style="color:${c.fill}">${c.id} ${c.label}</div>
+          <div class="bc-name" style="color:${isAct?c.fill:'var(--muted)'}">${c.id} ${c.label}</div>
           <div class="bc-badges">
-            ${i===0?`<div class="bc-prim">PRIMARY</div>`:''}
+            ${isPrim?`<div class="bc-prim">PRIMARY</div>`:''}
+            <div class="bc-prim ${isAct?'':'muted'}" style="background:${isAct?'rgba(255,255,255,.1)':'transparent'};border:1px solid ${isAct?'transparent':'var(--border)'};color:${isAct?c.fill:'var(--muted)'};text-transform:uppercase">${isAct?'ACTIVE':'inactive'}</div>
             <div class="bc-toggle" id="tog_${uid}">▼ details</div>
           </div>
         </div>
         <div class="conf-row">
-          <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${ab.confidence}%;background:${c.fill}"></div></div>
-          <div class="conf-pct" style="color:${c.fill}">${ab.confidence}%</div>
+          <div class="conf-bar-bg"><div class="conf-bar-fill" style="width:${score}%;background:${isAct?c.fill:'var(--muted2)'}"></div></div>
+          <div class="conf-pct" style="color:${isAct?c.fill:'var(--muted)'}">${score}%</div>
         </div>
         <div class="fix-lbl">Recommended Fix</div>
-        <div class="fix-box">${ab.fix||'—'}</div>
+        <div class="fix-box">${sr.fix || 'No fix required at current confidence.'}</div>
       </div>
       <div class="bc-detail hidden" id="${uid}">
-        ${renderBucketDetail(ab.bucket,sr,c)}
+        ${renderBucketDetail(b, sr, c)}
       </div>
     </div>`;
   }
   html+=`</div>`;
 
-  // All 8 score bars
+  // Score bars (compact summary across all buckets)
   html+=`<div class="score-bars">
-    <div class="score-title">All 8 Bucket Scores — threshold ${ACTIVE_THRESHOLD}% = active issue</div>`;
+    <div class="score-title">All 7 Bucket Scores — threshold ${ACTIVE_THRESHOLD}% = active</div>`;
   for(const [b,score] of Object.entries(scores).sort((a,z)=>z[1]-a[1])) {
     const c=BC[b]||{fill:'#666',label:b,id:'?'};
     const isAct=score>ACTIVE_THRESHOLD;
@@ -714,37 +981,8 @@ function renderSection4(rca,skills) {
     </div>`;
   }
   html+=`<div class="threshold-note">vertical line = ${ACTIVE_THRESHOLD}% threshold</div></div>`;
-
-  // Skill accordion
-  html+=`<div class="skill-accordion">`;
-  const skillEntries=[
-    ['mcat','MCAT_MISMATCH'],['content','THIN_CONTENT'],['spec','SPEC_CONTRADICTION'],
-    ['intent','LOW_BUYER_INTENT'],['seller','SELLER_SIDE_FAILURE'],
-    ['spec_quality','SPEC_VALUE_QUALITY'],['quantity','QUANTITY_MISMATCH'],['retail','RETAIL_QUERY']
-  ];
-  for(const [k,b] of skillEntries) {
-    const c=BC[b]||{};
-    const sr=skills[k]||{};
-    const conf=sr.confidence??'—';
-    const uid=`acc_${k}`;
-    html+=`<div class="skill-row" onclick="toggleSkill('${uid}')">
-      <div class="skill-left">
-        <div class="skill-id" style="background:${c.bg};color:${c.fill};border:1px solid ${c.border}">${c.id}</div>
-        <div class="skill-row-name">${c.label}</div>
-      </div>
-      <div class="skill-row-conf" style="color:${conf>ACTIVE_THRESHOLD?c.fill:'var(--muted)'}">${conf}% confidence</div>
-    </div>
-    <div class="skill-expand" id="${uid}">
-      <pre>${JSON.stringify(filterRaw(sr),null,2)}</pre>
-    </div>`;
-  }
-  html+=`</div></div>`;
+  html+=`</div>`;
   return html;
-}
-
-function filterRaw(sr) {
-  const {parallel_raw,...rest}=sr;
-  return rest;
 }
 
 function renderBucketDetail(bucket,sr,c) {
@@ -753,7 +991,6 @@ function renderBucketDetail(bucket,sr,c) {
     case 'THIN_CONTENT': return detailContent(sr,c);
     case 'SPEC_CONTRADICTION': return detailSpec(sr,c);
     case 'LOW_BUYER_INTENT': return detailIntent(sr,c);
-    case 'SELLER_SIDE_FAILURE': return detailSeller(sr,c);
     case 'SPEC_VALUE_QUALITY': return detailSpecQuality(sr,c);
     case 'QUANTITY_MISMATCH': return detailQuantity(sr,c);
     case 'RETAIL_QUERY': return detailRetail(sr,c);
@@ -807,26 +1044,6 @@ function detailIntent(sr,c) {
     <div class="dg-cell" style="grid-column:1/-1"><div class="dg-val" style="font-size:.78rem;font-weight:500">${sr.lead_history||'—'}</div><div class="dg-lbl">Lead History</div></div>
   </div>
   ${sr.reasoning?`<div class="reasoning-box">${sr.reasoning}</div>`:''}`;
-}
-
-function detailSeller(sr,c) {
-  const pm=sr.pool_metrics||{};
-  let html=`<div class="detail-grid">
-    ${pm.with_credits?`<div class="dg-cell"><div class="dg-val" style="color:${pm.with_credits.count>0?'var(--green)':'var(--red)'}">${pm.with_credits.label}</div><div class="dg-lbl">Have Credits</div></div>`:''}
-    ${pm.city_match?`<div class="dg-cell"><div class="dg-val">${pm.city_match.label}</div><div class="dg-lbl">City Match</div></div>`:''}
-    ${pm.with_bl_history?`<div class="dg-cell"><div class="dg-val">${pm.with_bl_history.label}</div><div class="dg-lbl">BL History</div></div>`:''}
-    ${pm.active_last_30d?`<div class="dg-cell"><div class="dg-val">${pm.active_last_30d.label}</div><div class="dg-lbl">Active 30d</div></div>`:''}
-    ${pm.distance_km?.avg!=null?`<div class="dg-cell"><div class="dg-val">${pm.distance_km.avg}</div><div class="dg-sub">min ${pm.distance_km.min} / max ${pm.distance_km.max}</div><div class="dg-lbl">Avg Dist (km)</div></div>`:''}
-  </div>`;
-  if(sr.primary_failure_mode) html+=`<div class="reasoning-box"><strong>Primary failure: </strong>${sr.primary_failure_mode}</div>`;
-  if(sr.per_seller_reasoning?.length) {
-    html+=`<div class="seller-reason-list">`;
-    for(const r of sr.per_seller_reasoning) {
-      html+=`<div class="sr-row"><div class="sr-rank">#${r.rank}</div><div class="sr-text">${r.company||''}: ${r.reason||'—'}</div></div>`;
-    }
-    html+=`</div>`;
-  }
-  return html;
 }
 
 function detailSpecQuality(sr,c) {
@@ -923,72 +1140,6 @@ function renderRadar(scores) {
   return `<div class="venn-wrap" style="min-width:180px">
     <div class="venn-title">Score Radar — 7 Buckets</div>
     ${svg}
-  </div>`;
-}
-
-// ── Venn Diagram (active overlapping buckets) ──────────────
-function renderVenn(active) {
-  if(!active||active.length<2) return '';
-  const n=active.length;
-  let svg='';
-  const W=560,H=n<=3?220:260;
-
-  if(n===2) {
-    const [a,b]=active;
-    const ca=BC[a.bucket]||{fill:'#aaa'};
-    const cb=BC[b.bucket]||{fill:'#aaa'};
-    svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="195" cy="${H/2}" r="110" fill="${ca.fill}" fill-opacity=".12" stroke="${ca.fill}" stroke-width="1.5" stroke-opacity=".5"/>
-      <circle cx="365" cy="${H/2}" r="110" fill="${cb.fill}" fill-opacity=".12" stroke="${cb.fill}" stroke-width="1.5" stroke-opacity=".5"/>
-      <text x="140" y="${H/2-18}" text-anchor="middle" font-size="11" fill="${ca.fill}" font-weight="700">${ca.id}</text>
-      <text x="140" y="${H/2}" text-anchor="middle" font-size="10" fill="${ca.fill}" font-weight="500">${a.confidence}%</text>
-      <text x="420" y="${H/2-18}" text-anchor="middle" font-size="11" fill="${cb.fill}" font-weight="700">${cb.id}</text>
-      <text x="420" y="${H/2}" text-anchor="middle" font-size="10" fill="${cb.fill}" font-weight="500">${b.confidence}%</text>
-      <text x="280" y="${H/2-8}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)">OVERLAP</text>
-      <text x="280" y="${H/2+8}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.4)">2 issues</text>
-    </svg>`;
-  } else if(n===3) {
-    const [a,b,c3]=active;
-    const ca=BC[a.bucket]||{fill:'#aaa'};
-    const cb=BC[b.bucket]||{fill:'#aaa'};
-    const cc=BC[c3.bucket]||{fill:'#aaa'};
-    svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="200" cy="95" r="95" fill="${ca.fill}" fill-opacity=".1" stroke="${ca.fill}" stroke-width="1.5" stroke-opacity=".5"/>
-      <circle cx="360" cy="95" r="95" fill="${cb.fill}" fill-opacity=".1" stroke="${cb.fill}" stroke-width="1.5" stroke-opacity=".5"/>
-      <circle cx="280" cy="190" r="95" fill="${cc.fill}" fill-opacity=".1" stroke="${cc.fill}" stroke-width="1.5" stroke-opacity=".5"/>
-      <text x="160" y="60" text-anchor="middle" font-size="11" fill="${ca.fill}" font-weight="700">${ca.id} ${a.confidence}%</text>
-      <text x="400" y="60" text-anchor="middle" font-size="11" fill="${cb.fill}" font-weight="700">${cb.id} ${b.confidence}%</text>
-      <text x="280" y="215" text-anchor="middle" font-size="11" fill="${cc.fill}" font-weight="700">${cc.id} ${c3.confidence}%</text>
-      <text x="280" y="130" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.5)">3 overlapping</text>
-    </svg>`;
-  } else {
-    // 4+ active: 2x2 grid of circles
-    const cols=2,rows=Math.ceil(n/cols);
-    const cw=W/cols,ch=H/rows;
-    svg=`<svg viewBox="0 0 ${W} ${rows*130}" xmlns="http://www.w3.org/2000/svg">`;
-    active.slice(0,6).forEach((ab,i)=>{
-      const cc=BC[ab.bucket]||{fill:'#aaa'};
-      const col=i%cols,row=Math.floor(i/cols);
-      const cx=cw*col+cw/2,cy=130*row+65;
-      svg+=`<circle cx="${cx}" cy="${cy}" r="50" fill="${cc.fill}" fill-opacity=".1" stroke="${cc.fill}" stroke-width="1.5" stroke-opacity=".5"/>`;
-      svg+=`<text x="${cx}" y="${cy-10}" text-anchor="middle" font-size="11" fill="${cc.fill}" font-weight="700">${cc.id}</text>`;
-      svg+=`<text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="10" fill="${cc.fill}">${ab.confidence}%</text>`;
-    });
-    svg+=`</svg>`;
-  }
-
-  return `<div class="radar-wrap" style="margin-bottom:16px">
-    <div class="radar-title">Overlap Venn — ${n} Active Issue${n>1?'s':''}</div>
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <svg viewBox="0 0 ${W} ${n<=3?220:n<=4?260:n<=6?390:520}" style="max-width:520px;width:100%">${svg.replace(/<svg[^>]*>/,'').replace('</svg>','')}</svg>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${active.map(ab=>{const cc=BC[ab.bucket]||{};return `<div style="display:flex;align-items:center;gap:8px;font-size:.75rem">
-          <div style="width:10px;height:10px;border-radius:50%;background:${cc.fill};flex-shrink:0"></div>
-          <div><strong style="color:${cc.fill}">${cc.id}</strong> ${cc.label}</div>
-          <div style="color:var(--muted);margin-left:auto">${ab.confidence}%</div>
-        </div>`;}).join('')}
-      </div>
-    </div>
   </div>`;
 }
 

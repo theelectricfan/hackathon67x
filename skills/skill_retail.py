@@ -34,6 +34,9 @@ def run_skill_retail(ctx: dict) -> dict:
     gst_verified  = bool(ctx.get("buyer", {}).get("eto_ofr_buyer_is_gst_verf"))
     mob_verified  = bool(ctx.get("buyer", {}).get("eto_ofr_buyer_is_mob_verf"))
     is_first_time = ctx.get("is_first_time_buyer", False)
+    was_purchased      = ctx.get("was_purchased", False)
+    has_business_buyer = ctx.get("has_business_buyer", False)
+    purchasers         = ctx.get("purchasing_sellers") or []
 
     # ── Rule-based signals ───────────────────────────────────────────────────
     enq_typ_label = _RETAIL_FLAG_LABEL.get(retail_flag, "UNKNOWN") if retail_flag is not None else "MISSING"
@@ -65,6 +68,11 @@ def run_skill_retail(ctx: dict) -> dict:
 - Mobile verified:  {mob_verified}
 - First-time buyer: {is_first_time}
 
+── PURCHASE OUTCOME (hardest evidence) ──
+- BL was purchased:               {was_purchased}    ← TRUE = a real seller paid for this lead
+- Purchased by a paid B2B seller: {has_business_buyer}    ← TRUE = professional B2B seller, NOT retail
+- Purchasing-seller custtypes:    {[s.get('custtype_name') for s in purchasers] or 'n/a'}
+
 ── BUYER-FILLED SPECS ──
 {specs_filled if specs_filled else "(no specs filled)"}
 
@@ -74,6 +82,8 @@ Rule-based pre-checks:
 - Unverified first-timer:              {rule_unverified_personal}
 
 Calibration guidance — anchor your confidence to evidence, not vibes:
+- Purchased by a B2B custtype seller (CATALOG/TSCATALOG/etc.)                                          →  retail confidence  0-10  (proves B2B)
+- BL purchased but no business-tier buyer info                                                          →  retail confidence  5-25
 - ALL three hard pre-checks FALSE and AOV ≥ Rs. 1 Lakh and/or quantity in Ton/Truckload/Quintal/Drum  →  retail confidence  0-15
 - One soft signal (e.g. first-time + small AOV, no GST) but nothing decisive                           →  retail confidence 30-45
 - "Personal Use" req-type OR enq_typ in (1,3) explicit                                                  →  retail confidence 70-90

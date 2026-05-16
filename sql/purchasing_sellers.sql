@@ -1,7 +1,6 @@
--- Enriched ASTBUY-seller profile for every supplier the unsold BL was
--- routed to for a chase-call.  These are NOT the sellers the BL was
--- originally recommended to — they're the post-unsold astbuy pool.
--- ds=8 (im_dwh_rpt) — warehouse joins for alert rank, location prefs.
+-- Sellers who actually purchased this BL — ENRICHED with the same
+-- warehouse joins as seller_details.sql (alert rank, location prefs,
+-- city A/B-rank lists, 1-year BL-purchase history).  ds=8 (im_dwh_rpt).
 -- {offer_id} injected as a numeric literal.
 
 WITH ofr AS (
@@ -15,19 +14,15 @@ WITH ofr AS (
 ),
 base AS (
     SELECT DISTINCT
-        m.fk_eto_ofr_display_id            AS offer_id,
-        m.fk_glusr_usr_id                  AS supplier_gl_id,
-        COALESCE(ofr.eto_ofr_mcat_id, m.eto_lead_prime_mcat) AS mcat_id,
-        m.eto_lead_prime_mcat,
-        m.eto_lead_search_keyword,
-        m.eto_lead_supplier_rank           AS selected_seller_rank,
-        m.eto_leadsupmap_typ               AS selection_rejection_type,
-        m.eto_lead_supp_mapp_result_info,
-        m.eto_lead_supplier_dist,
-        m.eto_lead_total_supp_count
-    FROM im_dwh_rpt.fact_eto_lead_supplier_mapping m
-    LEFT JOIN ofr ON m.fk_eto_ofr_display_id = ofr.eto_ofr_display_id
-    WHERE m.fk_eto_ofr_display_id = {offer_id}
+        p.fk_eto_ofr_display_id        AS offer_id,
+        p.supplier_gl_id,
+        p.eto_pur_date                 AS purchased_at,
+        COALESCE(ofr.eto_ofr_mcat_id, 0) AS mcat_id
+    FROM im_dwh_rpt.fact_eto_lead_pur p
+    LEFT JOIN ofr ON p.fk_eto_ofr_display_id = ofr.eto_ofr_display_id
+    WHERE p.fk_eto_ofr_display_id = {offer_id}
+      AND p.flag_purchased = 'purchased'
+      AND p.eto_lead_pur_type IN ('b', 'B')
 ),
 lead_pur_1yr AS (
     SELECT p.supplier_gl_id,
@@ -64,18 +59,12 @@ b_rank_city AS (
 SELECT
     b.offer_id,
     b.supplier_gl_id,
-    u.glusr_usr_companyname,
+    u.glusr_usr_companyname           AS supplier_company_name,
     u.custtype_name,
     u.glusr_usr_membersince,
     u.glusr_usr_lastlogin,
+    b.purchased_at,
     b.mcat_id,
-    b.eto_lead_prime_mcat,
-    b.eto_lead_search_keyword,
-    b.selected_seller_rank,
-    b.selection_rejection_type,
-    b.eto_lead_supp_mapp_result_info,
-    b.eto_lead_supplier_dist,
-    b.eto_lead_total_supp_count,
     rnk.eto_trd_alert_rank,
     rnk.eto_trd_alert_subrank,
     loc_p.glusr_usr_deduced_loc_pref1,
@@ -93,4 +82,5 @@ LEFT JOIN im_dwh_rpt.fact_glusr_usr_loc_pref loc_p
        ON b.supplier_gl_id = loc_p.fk_glusr_usr_id
 LEFT JOIN a_rank_city a   ON b.supplier_gl_id = a.glusr_usr_id
 LEFT JOIN b_rank_city bc  ON b.supplier_gl_id = bc.glusr_usr_id
-LEFT JOIN lead_pur_1yr lp ON b.supplier_gl_id = lp.supplier_gl_id;
+LEFT JOIN lead_pur_1yr lp ON b.supplier_gl_id = lp.supplier_gl_id
+ORDER BY b.purchased_at DESC;
